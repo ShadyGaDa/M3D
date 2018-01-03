@@ -1,0 +1,19 @@
+unit MB3DParam;
+uses MB3DFormula;
+type
+  TMB3DParamFacade = class
+  private
+    FOwner: TMB3DFormulaFacade;
+    FParamIndex: Integer;
+    function GetName: String;
+    function GetDatatype: TMB3DParamType;
+    function GetValue: Double;
+    procedure SetValue(const Value: Double);
+    constructor Create(const ParamIndex: Integer;const Owner: TMB3DFormulaFacade);
+  public
+    property Name: String read GetName;
+    property Datatype: TMB3DParamType read GetDatatype;
+    property Value: Double read GetValue write SetValue;
+  end;
+
+end.

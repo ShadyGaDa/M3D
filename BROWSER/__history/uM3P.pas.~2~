@@ -1,0 +1,207 @@
+unit uM3P;
+
+interface
+
+uses
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.Buttons,
+  Vcl.ExtCtrls,
+  Vcl.StdCtrls,
+  System.Contnrs,
+  FileHandling,
+  TypeDefinitions,
+  DivUtils,
+  Math3D, JvDriveCtrls, JvExStdCtrls, JvListBox, Vcl.Mask, JvExMask, JvToolEdit,
+  JvBaseDlg, JvFindFiles, Vcl.FileCtrl, Vcl.ExtDlgs, JvCombobox;
+
+
+type
+  TfM3P = class(TForm)
+    Button_P_5: TSpeedButton;
+    ctrlPanel: TPanel;
+    Edit_N_3: TEdit;
+    HiQ: TCheckBox;
+    Image_1: TImage;
+    Label_N_27: TLabel;
+    Label_N_28: TLabel;
+    Label_N_29: TLabel;
+    Label_N_30: TLabel;
+    Label_N_8: TLabel;
+    lbl_Active: TLabel;
+    MainPnl: TPanel;
+    OpenDialog_P_1: TOpenDialog;
+    OpenTextFileDialog1: TOpenTextFileDialog;
+    Panel_1: TPanel;
+    RadioGroup_N_2: TRadioGroup;
+    SaveTextFileDialog1: TSaveTextFileDialog;
+    ScrollBox1: TScrollBox;
+    SpeedButton_N_P_TO_MAIN_14: TSpeedButton;
+    Timer_P_1: TTimer;
+    JvDirectoryListBox1: TJvDirectoryListBox;
+    JvDriveCombo1: TJvDriveCombo;
+    JvFilenameEdit1: TJvFilenameEdit;
+    JvFindFilesDialog1: TJvFindFilesDialog;
+    JvFileListBox1: TJvFileListBox;
+    procedure JvDriveCombo1Change(Sender: TObject);
+    procedure JvDirectoryListBox1Change(Sender: TObject);
+    procedure JvFileListBox1Change(Sender: TObject);
+
+  private
+    function LoadParameterM3P(var Para10: TMandHeader10; FileName: String; Verbose: LongBool): Boolean;
+  public
+
+
+  end;
+
+var
+  fM3P: TfM3P;
+  Header: TMandHeader10;
+implementation
+//uses Calc ?? rename ??;
+
+uses
+  MAIN,
+  HeaderTrafos,
+  System.Math,
+  Interpolation,
+  CustomFormulas;
+
+
+{$R *.dfm}
+
+
+procedure TfM3P.JvDirectoryListBox1Change(Sender: TObject);
+begin
+  JvFileListBox1.Directory := JvDirectoryListBox1.Directory;
+end;
+//
+procedure TfM3P.JvDriveCombo1Change(Sender: TObject);
+begin
+  JvDirectoryListBox1.Drive := JvDriveCombo1.Drive;
+  JvFileListBox1.Drive := JvDriveCombo1.Drive;
+  JvFileListBox1.Directory := JvDirectoryListBox1.Directory;
+end;
+//
+procedure TfM3P.JvFileListBox1Change(Sender: TObject);
+begin
+   JvFilenameEdit1.FileName := JvFileListBox1.FileName;
+   LoadParameterM3P(Header, JvFileListBox1.FileName, True)
+end;
+
+function TfM3P.LoadParameterM3P(var Para10: TMandHeader10; FileName: String; Verbose: LongBool): Boolean;
+var f: file;
+    d: Double;
+    MId, i: Integer;
+    p: TP6;
+//    MandHeader4: TMandHeader4;
+//    para9: TMandHeader9;
+//    TileSize: TPoint;
+begin
+    SaveHeaderPointers(@para10, p);
+    Result := False;
+    //LastHisParSaveTime := Now;
+    if FileExists(FileName) then
+    try
+      //if Verbose then GUI.OutMessage('Loading: ' + ChangeFileExtSave(ExtractFileName(FileName), ''));
+      AssignFile(f, FileName);
+      Reset(f, 1);
+//      BlockRead(f, MId, 4);
+//      if (MId < 0) or (MId > 250) or (FileSize(f) < 100) then Exit;
+//      Seek(f, 0);
+//      if MId < 4 then begin
+//        BlockRead(f, MandHeader4, SizeOf(TMandHeaderOld));
+//        FillChar(MandHeader4.dFOVy, 72, 0);
+//      end
+//      else if MId < 7 then BlockRead(f, MandHeader4, SizeOf(TMandHeader4))
+//      else if MId < 8 then BlockRead(f, Para9, SizeOf(TMandHeader9) - 124)
+//      else if MId < 20 then BlockRead(f, Para9, SizeOf(TMandHeader9))
+//      else BlockRead(f, Para10, SizeOf(TMandHeader10));
+      BlockRead(f, Para10, SizeOf(TMandHeader10));
+//      if (MId < 5) and (MandHeader4.dZstart > MandHeader4.dZend) then begin
+//        MandHeader4.dZstart := - MandHeader4.dZstart;
+//        MandHeader4.dZend   := - MandHeader4.dZend;
+//        d                   := MandHeader4.dXrot;
+//        MandHeader4.dXrot   := MandHeader4.dYrot * Pid180;
+//        MandHeader4.dYrot   := d * Pid180;
+//        MandHeader4.Light.Cols[7] := MandHeader4.Light.Cols[4];
+//        MandHeader4.Light.Cols[8] := MandHeader4.Light.Cols[5];
+//        MandHeader4.Light.Cols[9] := MandHeader4.Light.Cols[6];
+//      end;
+//      if MId < 5 then MandHeader4.dZmid := (MandHeader4.dZstart + MandHeader4.dZend) * 0.5
+//      else if (MId = 5) and ((MandHeader4.iOptions and 15) = 10) then begin
+//        MandHeader4.dPow := (MandHeader4.iOptions shr 18) and 3;
+//        i := (MandHeader4.iOPtions and $38000) shr 1;
+//        MandHeader4.iOptions := (MandHeader4.iOptions and $7FFC3FFF) or i;
+//      end;
+//      if MId < 7 then begin
+//        if MId < 6 then MandHeader4.bHScalculated := 1;
+//        MandHeader4.Light.TBoptions := MandHeader4.Light.TBoptions or (43 shl 11);
+//        Convert4to7paras(MandHeader4, TMandHeader8(Para9));
+//      end
+//      else if MId < 8 then ConvertFromOldLightParas(Para9.Light, 148);
+//      para10.MandId := MId;
+//      //GUI.Authors := ExtractAuthorsFromPara(@para10);   //if MId > 40
+//      InsertHeaderPointers(@para10, p);
+//      if MId < 20 then begin
+//        for i := 0 to 5 do para9.PHCustomF[i] := p[i];
+//        Para9.PCFAddon := p[6];
+//        Result := ConvertHeaderFromOldParas(TMandHeader8(Para9), True);
+//        FastMove(Para9, Para10, SizeOf(TMandHeader9));
+//        ConvertLight8to9(Para9.Light, Para10.Light);
+//      end
+//      else begin
+        Result := True;
+//        if Verbose then LoadBackgroundPicT(@Para10.Light);
+//      end;
+//      if Result and Verbose then begin  //not verbose only for canload test
+//        if MId > 15 then begin //Load HAddon
+//          if MId > 17 then begin
+//            if MId > 18 then begin
+//              if MId < 35 then para10.TilingOptions := 0;
+//              TileSize := GetTileSize(@para10);
+//              i := TileSize.X * TileSize.Y * SizeOf(TsiLight5);
+//            end
+//            else i := Para10.Width * Para10.Height * SizeOf(TsiLight4);
+//          end
+//          else i := Para10.Width * Para10.Height * SizeOf(TsiLight3);
+        //i := Para10.Width * Para10.Height * SizeOf(TsiLight3);
+        //if FileSize(f) >= FilePos(f) + i + SizeOf(THeaderCustomAddonOld) then Seek(f, FilePos(f) + i);
+        LoadHAddon(f, PTHeaderCustomAddon(Para10.PCFAddon));
+        //end;
+        //if MId < 20 then UpdateFormulaOptionTo20(PTHeaderCustomAddon(Para10.PCFAddon));
+        UpdateFormulaOptionAbove20(para10);
+//        UpdateLightParasAbove3(para10.Light);
+        IniCFsFromHAddon(PTHeaderCustomAddon(Para10.PCFAddon), Para10.PHCustomF);
+      //  GUI.HAddOn.bHCAversion := 16;//test
+        //bSRVolLightMapCalculated := False;
+        //GUI.SetEditsFromHeader;
+        //GUI.allPreSetsUp;
+        //GUI.MButtonsUp;
+        //GUI.InternAspect := para10.Width / Max(1, para10.Height);
+        //FastMove(GUI.MHeader.Light, LHPSLight, SizeOf(TLightingParas9));
+        //GUI.bUserChangeL := False;{LIGHT}
+        //GUI.CheckBox_L_21.Checked := False;{LIGHT}
+        //GUI.SetLightFromHeader(Para10);{LIGHT}
+        //StoreUndoLight;
+        //if Para10.Light.BGbmp[0] = 0 then GUI.Image_L_5.Visible := False else
+        //  MakeLMPreviewImage(GUI.Image_L_5, @M3DBackGroundPic);{LIGHT}
+        //SetSaveDialogNames(FileName);
+  //      GUI.Caption := ExtractFileName(FileName);
+        //GUI.Label_M_1.Caption := '';
+//      end;
+    finally
+      CloseFile(f);
+    end;
+end;
+
+
+
+end.

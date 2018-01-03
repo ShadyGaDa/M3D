@@ -1,0 +1,54 @@
+[OPTIONS]
+.DEScale = 1
+.SIPow = 2
+.Version = 9
+
+[SOURCE]
+procedure MyFormula(var x, y, z, w: Double; PIteration3D: TPIteration3D);
+
+var
+   sq_r, r, sq_rxy: double;
+   x1, x2, y1, y2, z1, z2: double;
+   rho1, rho2: double;
+   tmp1, tmp2, tmp_mult: double;
+   sq_x, sq_y, sq_z: double; 
+   cx, cy, cz: double;
+
+begin
+
+// set c
+   cx := PIteration3D^.J1;
+   cy := PIteration3D^.J2;
+   cz := PIteration3D^.J3;
+  
+// calculating helper variable for powers
+   sq_rxy := x*x + y*y;
+   sq_x := x*x;
+   sq_y := y*y;
+   sq_z := z*z;
+   
+   tmp1 := 1 - 3*sq_z/sq_rxy;
+   tmp2 := 1 + 5*sq_z*(sq_z - 2*sq_rxy)/(sq_rxy*sq_rxy);
+
+// calculating power 3   
+   x1 := x*(sq_x - 3*sq_y)*tmp1;
+   y1 := y*(3*sq_x - sq_y)*tmp1;
+   z1 := z*(3*sq_rxy - sq_z);
+   
+// calculating power 5   
+   x2 := x*(sq_x*sq_x - 10*sq_x*sq_y + 5*sq_y*sq_y)*tmp2;
+   y2 := y*(5*sq_x*sq_x - 10*sq_x*sq_y + sq_y*sq_y)*tmp2;
+   z2 := z*(sq_z*sq_z - 10*sq_z*sq_rxy + 5*sq_rxy*sq_rxy);
+
+// calculating helper variables for multiplication  
+   rho1 := sqrt(x1*x1 + y1*y1);
+   rho2 := sqrt(x2*x2 + y2*y2);
+   tmp_mult := 1 - (z1*z2)/(rho1*rho2);
+  
+//multiplicate (sine variant), and add c
+   x := (x1*x2 - y1*y2)*tmp_mult + cx;
+   y := (x1*y2 + x2*y1)*tmp_mult + cy;
+   z := rho1*z2 + rho2*z1 + cz;
+   
+end;
+[END]

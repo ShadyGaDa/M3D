@@ -1,0 +1,67 @@
+- FORMULA / PARAMETERS
+        Save pars in JPEG exif, lod jpg+m3p
+        formula randomizer ....
+        formula parameter convert to text <> binary
+        search formula (already in listcombo)
+        hard code formulas / with overide option !! many asm hard coded formulas
+        ha5rd code light png maps etc so no external files are necessary , with overide option
+        separate / isolate all asm based code
+!!!!!!! formula / parameter | converter / browser
+      - {re-arrange formula/param(s) for better coding}
+        MODULE for viewing / changing, formulas / parameters, from all form HEADERS/ADDONS
+      * switch formula panel layout on tab change for navi view / with sliders
+        sort pas files on Mand10_Header .....
+        Mand10 Header Central
+- REQUESTED
+        extend formulas to 16
+        formula swap  F2 selected and right click to swap with F1 or F3
+        UV cloud imp/exp
+        GPU render
+        Monte Carlo module import
+        PopOut Formula/Light panels
+
+- MUTATION
+        mutate history saver thumbnail, on/off selective...   tick
+
+- INTERNAL
+        Vulcan (ogl2) gfx acceleration  (VOXELSTACK...)
+        asm -> c/pascal ->???
+
+- COSMETIC
+        Internal color change / font change / lang??
+        WindowBlinds Theme -- steampunk
+
+- NAVI
+        Pause / Stop / Exit!?...................................................tick
+        changed button layout.. get round 6_button panel...
+
+- VIDEO
+        mkv render 1000 msec slices -> 500/30fps render in mem
+
+GUI tabs instances  .....
+
+central control panel switch {mv}(header)(addon)[frm].setting
+
+access sliders...
+
+skeleton crew := push any proc or func out to other pas files
+
+Export mp3,jpg.. in NAV....................      png,bmp  jpg+m3ptick
+Adjust render quality in nav
+scale up in main image
+
+Lighting wont import needs fixing...............................................tick // misplaced e on ver name
+Must finalize files, dependencies, {PNG} .......................................tick
+
+
+
+- IMAGINE
+
+ remove floating point math with integer  (340 decimal places big num)
+        ------->ZOOM<--------
+       (+/-)  ^2 ^3 ^4 ... ^10 ... ^26 .?. ^27 ..
+        divide / multiply world granularity
+
+ cubic pixels --> map to transforms over time  --> vector space expands / or contracts
+        visualization in skeleton framework scaled down..
+

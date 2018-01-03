@@ -1,0 +1,17 @@
+*.dcu
+History/*
+__history/*
+mutagen/__history/*
+render/__history/*
+facade/__history/*
+formula/__history/*
+prefs/__history/*
+maps/__history/*
+export/__history/*
+*.exe
+*.zip
+Mandelbulb3D.ini
+*.dsk
+*.~dsk
+*.local
+*.identcache

@@ -1,0 +1,50 @@
+[OPTIONS]
+.DEScale = 1
+.SIPow = 2
+.Version = 9
+.Double aim = 1
+.Double aj = 1
+.Double are = 1
+.Double ccc = -1
+.Double n = 4
+[SOURCE]
+procedure MyFormula(var x, y, z, w: Double; PIteration3D: TPIteration3D);
+var
+   sq_r: double;
+   sq_xz: double;
+   theta, zangle,a,b,c,ix,iy,iz: double;
+begin
+   sq_r := sqrt(x*x+y*y+z*z);
+   sq_xz := sqrt(x*x+z*z);
+   
+   theta := arctan2( sq_xz , y) ;
+   {This is true everywhere, because sq_r is >=0 ; atan2(a,b) differs from atan(a/b) when b<0
+   I must use atan2 because 'acos' is missing in assembly.}
+   zangle := arctan2(x,z)  ;
+
+
+
+   	begin
+   	a:= (ccc+(power(x,n)*sin(theta)*cos(zangle)));
+	ix:=( (1/(n*power(x,n-1)))*sin(-zangle)*cos(theta)); { inverse ix donc -angle}
+	a:=are*a*ix;
+   		x:=a-(x*sin(zangle)*cos(theta))+PIteration3D^.J1;
+	b:= (ccc+(power(y,n)*sin(theta)*sin(zangle)));
+       iy:=((1/(n*power(y,n-1)))*sin(-theta)*sin(-zangle));
+       b:=aim*b*iy;
+   		y:=b-(y*sin(theta)*sin(zangle))+PIteration3D^.J2;
+       c:=(ccc+(power(z,n))*cos(theta));
+       iz:=((1/(n*power(z,n-1)))*cos(theta)); {f(t)/f'(t) - t}
+       c:=aj*c*iz;
+       	z:=c-(z*cos(theta))+PIteration3D^.J3; 
+	end
+end;
+[END]
+newton fractal
+ z-f(z)/f'(z)
+
+ 
+ccc = - f(x)
+n for z^n
+aaa for z-aaa*f(z)/f'(z)
+are+i*aim+j*aj=a

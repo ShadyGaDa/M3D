@@ -1,0 +1,1662 @@
+object PostProForm: TPostProForm
+  Left = 844
+  Top = 100
+  BorderStyle = bsDialog
+  Caption = 'Post processing'
+  ClientHeight = 1247
+  ClientWidth = 255
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  OnActivate = FormActivate
+  OnCreate = FormCreate
+  OnHide = FormHide
+  OnMouseWheel = FormMouseWheel
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object NormalsOnZBufferBtn: TSpeedButton
+    Left = 0
+    Top = 122
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 2
+    Caption = ' Normals on Z-buffer'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = NormalsOnZBufferBtnClick
+    ExplicitTop = 8
+  end
+  object HardShadowsBtn: TSpeedButton
+    Left = 0
+    Top = 208
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 3
+    Caption = ' Hard Shadows'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = HardShadowsBtnClick
+    ExplicitLeft = 8
+  end
+  object AmbientShadowsBtn: TSpeedButton
+    Left = 0
+    Top = 422
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 4
+    Caption = ' Ambient Shadows'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = AmbientShadowsBtnClick
+    ExplicitLeft = 21
+    ExplicitTop = 431
+  end
+  object ReflTransparencyBtn: TSpeedButton
+    Left = 0
+    Top = 658
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 5
+    Caption = ' Reflections + Transparency'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = ReflTransparencyBtnClick
+    ExplicitLeft = 8
+    ExplicitTop = 679
+  end
+  object DepthOfFieldBtn: TSpeedButton
+    Left = 0
+    Top = 891
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 6
+    Caption = ' Depth of Field'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = DepthOfFieldBtnClick
+    ExplicitLeft = 8
+    ExplicitTop = 897
+  end
+  object RecalcSectionBtn: TSpeedButton
+    Left = 0
+    Top = 0
+    Width = 255
+    Height = 21
+    Hint = 'Click to hide/show'
+    Align = alTop
+    AllowAllUp = True
+    GroupIndex = 1
+    Caption = ' Recalculate a Selection'
+    ParentShowHint = False
+    ShowHint = True
+    OnClick = RecalcSectionBtnClick
+    ExplicitLeft = -8
+    ExplicitTop = -1
+  end
+  object PostProcessHintPnl: TPanel
+    Left = 0
+    Top = 613
+    Width = 255
+    Height = 45
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 3
+    object Label_P_3: TLabel
+      Left = 0
+      Top = 0
+      Width = 255
+      Height = 45
+      Margins.Left = 2
+      Margins.Top = 1
+      Margins.Right = 0
+      Margins.Bottom = 0
+      Align = alClient
+      Caption = 
+        'Caution:  The processings below must be calculated'#13#10'from top to ' +
+        'bottom and light changes will reset'#13#10'these calculations!'
+      ExplicitWidth = 247
+      ExplicitHeight = 39
+    end
+    object Button_P_16: TButton
+      Left = 180
+      Top = 27
+      Width = 67
+      Height = 17
+      Hint = 'Resets the DoF effect and the reflections.'
+      Caption = 'Reset now'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_16Click
+    end
+  end
+  object RecalcSectionPnl: TPanel
+    Left = 0
+    Top = 21
+    Width = 255
+    Height = 101
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 4
+    Visible = False
+    object Label_P_4: TLabel
+      Left = 62
+      Top = 49
+      Width = 78
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Raystep divisor:'
+    end
+    object Button_P_13: TButton
+      Left = 83
+      Top = 76
+      Width = 67
+      Height = 21
+      Hint = 
+        'Make an image selection with the mouse then recalculate this sel' +
+        'ection'#13#10'with the current parameters.'#13#10'The hardshadows and the DE' +
+        'AO will also be calculated if selected, but'#13#10'other ambient shado' +
+        'ws must be recalculated again for the whole image.'#13#10'Also "normal' +
+        's on Zbuffer" has to be recalculated, if calculated before.'
+      Caption = 'Calculate'
+      Enabled = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_13Click
+    end
+    object CheckBox_P_19: TCheckBox
+      Left = 31
+      Top = 7
+      Width = 131
+      Height = 17
+      Hint = 'To reduce overstepping'
+      Alignment = taLeftJustify
+      Caption = 'Keep only nearer parts:'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+    end
+    object CheckBox_P_21: TCheckBox
+      Tag = 1
+      Left = 12
+      Top = 78
+      Width = 58
+      Height = 17
+      Alignment = taLeftJustify
+      Caption = 'Enable'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 2
+      OnClick = CheckBox_P_21Click
+    end
+    object CheckBox_P_30: TCheckBox
+      Left = 6
+      Top = 26
+      Width = 156
+      Height = 17
+      Hint = 'Helpful if you want to redo an unwanted drawing for example.'
+      Alignment = taLeftJustify
+      Caption = 'Don'#39't change AmbSh+dFog:'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+    end
+    object Edit_P_12: TEdit
+      Left = 149
+      Top = 46
+      Width = 30
+      Height = 21
+      ParentShowHint = False
+      ReadOnly = True
+      ShowHint = True
+      TabOrder = 4
+      Text = '1'
+    end
+    object UpDown_P_4: TUpDown
+      Left = 179
+      Top = 46
+      Width = 16
+      Height = 21
+      Associate = Edit_P_12
+      Min = 1
+      Max = 99
+      Position = 1
+      TabOrder = 5
+    end
+  end
+  object NormalsOnZBufferPnl: TPanel
+    Left = 0
+    Top = 143
+    Width = 255
+    Height = 65
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 5
+    Visible = False
+    object Label_P_7: TLabel
+      Left = 106
+      Top = 34
+      Width = 133
+      Height = 26
+      AutoSize = False
+      Caption = 'Warning: Must recalculate the whole image to undo it!'
+      WordWrap = True
+    end
+    object Button_P_14: TButton
+      Left = 12
+      Top = 37
+      Width = 83
+      Height = 21
+      Hint = 
+        'Use only as second option if the normals (the surface direction ' +
+        'for lighting) seems to be crappy.'
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_14Click
+    end
+    object CheckBox_P_23: TCheckBox
+      Tag = 2
+      Left = 27
+      Top = 9
+      Width = 191
+      Height = 17
+      Caption = 'Do this function automatically'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+      OnClick = CheckBox_P_23Click
+    end
+  end
+  object HardShadowsPnl: TPanel
+    Left = 0
+    Top = 229
+    Width = 255
+    Height = 193
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 6
+    Visible = False
+    object Label_P_6: TLabel
+      Left = 29
+      Top = 117
+      Width = 36
+      Height = 13
+      Caption = 'Radius:'
+    end
+    object Label_P_8: TLabel
+      Left = 11
+      Top = 37
+      Width = 86
+      Height = 13
+      Caption = 'Max. length calc.:'
+    end
+    object Button_P_3: TButton
+      Left = 12
+      Top = 170
+      Width = 83
+      Height = 21
+      Hint = 
+        'Push the button to calculate the hardshadows from the selected l' +
+        'ights.'#13#10'Once calculated, the hardshadow must not be calculated a' +
+        'gain,'#13#10'unless the angle or the position of the light was changed' +
+        '.'
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_3Click
+    end
+    object Button_P_4: TButton
+      Tag = 1
+      Left = 185
+      Top = 34
+      Width = 41
+      Height = 16
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = Button_P_4Click
+    end
+    object Button_P_5: TButton
+      Tag = 2
+      Left = 185
+      Top = 57
+      Width = 41
+      Height = 17
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = Button_P_4Click
+    end
+    object Button_P_6: TButton
+      Tag = 3
+      Left = 185
+      Top = 80
+      Width = 41
+      Height = 17
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = Button_P_4Click
+    end
+    object Button_P_7: TButton
+      Tag = 4
+      Left = 185
+      Top = 103
+      Width = 41
+      Height = 17
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+      OnClick = Button_P_4Click
+    end
+    object Button_P_8: TButton
+      Tag = 5
+      Left = 185
+      Top = 126
+      Width = 41
+      Height = 17
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+      OnClick = Button_P_4Click
+    end
+    object Button_P_9: TButton
+      Tag = 6
+      Left = 185
+      Top = 149
+      Width = 41
+      Height = 17
+      Hint = 'Resets a previous calculation of this lights hard shadow.'
+      Caption = 'reset'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+      OnClick = Button_P_4Click
+    end
+    object CheckBox_P_10: TCheckBox
+      Left = 125
+      Top = 174
+      Width = 122
+      Height = 17
+      Hint = 
+        'Sets automatically the correspondending light function to cosine' +
+        ','#13#10'when the shadow is calculated.'#13#10'The cosine and the quadratic ' +
+        'cosine function works well with the shadow.'
+      Caption = 'Set lightfunc to cosine'
+      Checked = True
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 7
+    end
+    object CheckBox_P_2: TCheckBox
+      Left = 125
+      Top = 34
+      Width = 54
+      Height = 17
+      Caption = 'Light 1'
+      Checked = True
+      State = cbChecked
+      TabOrder = 8
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_29: TCheckBox
+      Left = 12
+      Top = 94
+      Width = 72
+      Height = 17
+      Hint = 'To calculate a better hard shadow, only if 1 HS selected!'
+      Caption = 'Softer H.S.'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+    end
+    object CheckBox_P_3: TCheckBox
+      Left = 125
+      Top = 57
+      Width = 54
+      Height = 17
+      Caption = 'Light 2'
+      TabOrder = 10
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_4: TCheckBox
+      Left = 125
+      Top = 80
+      Width = 54
+      Height = 17
+      Caption = 'Light 3'
+      TabOrder = 11
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_5: TCheckBox
+      Left = 125
+      Top = 103
+      Width = 54
+      Height = 17
+      Caption = 'Light 4'
+      TabOrder = 12
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_6: TCheckBox
+      Left = 125
+      Top = 126
+      Width = 54
+      Height = 17
+      Caption = 'Light 5'
+      TabOrder = 13
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_7: TCheckBox
+      Left = 125
+      Top = 149
+      Width = 54
+      Height = 17
+      Caption = 'Light 6'
+      TabOrder = 14
+      OnClick = CheckBox_P_2Click
+    end
+    object CheckBox_P_9: TCheckBox
+      Tag = 3
+      Left = 26
+      Top = 6
+      Width = 182
+      Height = 17
+      Hint = 
+        'If enabled, the choosen hard shadows will be calculated'#13#10'automat' +
+        'ically after the main rendering.'#13#10'Choose the options before.'
+      Caption = 'Calculate H.S. automatically'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 15
+      OnClick = CheckBox_P_9Click
+    end
+    object Edit_P_5: TEdit
+      Left = 29
+      Top = 56
+      Width = 31
+      Height = 21
+      Hint = 
+        'A multiplier that defines the miximal length of the hard shadow ' +
+        'calculation,'#13#10'relative to some image size parameters (default = ' +
+        '1).'#13#10'Increase the value if shadows of far objects are missing.'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 16
+      Text = '1.0'
+    end
+    object Edit_P_7: TEdit
+      Left = 29
+      Top = 133
+      Width = 31
+      Height = 21
+      Hint = 'Bigger radius means softer shadows'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 17
+      Text = '1.0'
+    end
+  end
+  object AmbientShadowsPnl: TPanel
+    Left = 0
+    Top = 443
+    Width = 255
+    Height = 170
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 7
+    Visible = False
+    object Label_P_24: TLabel
+      Left = 215
+      Top = 15
+      Width = 20
+      Height = 20
+      Hint = 
+        'SSAO15:    Ambient shadow based on the ZBuffer.'#13#10'SSAO24:    Uses' +
+        ' 24 bits of the ZBuffer.'#13#10'SSAO24r:   Uses random distributions f' +
+        'or less artifacts.'#13#10'DEAO:        Ambient shadow based on distanc' +
+        'e estimates'#13#10'(advanced in animations)'
+      Alignment = taCenter
+      AutoSize = False
+      Caption = '?'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+    end
+    object Button_P_10: TButton
+      Left = 11
+      Top = 142
+      Width = 83
+      Height = 21
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      OnClick = Button_P_10Click
+    end
+    object CheckBox_P_11: TCheckBox
+      Tag = 4
+      Left = 27
+      Top = 9
+      Width = 182
+      Height = 17
+      Hint = 
+        'If enabled, the ambient shadows will be calculated'#13#10'automaticall' +
+        'y after the main rendering.'#13#10'Choose the options before.'
+      Caption = 'Calculate A.S. automatically'
+      Checked = True
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      State = cbChecked
+      TabOrder = 1
+      OnClick = CheckBox_P_11Click
+    end
+    object TabControl_P_1: TTabControl
+      Left = 1
+      Top = 32
+      Width = 245
+      Height = 106
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      Tabs.Strings = (
+        'SSAO15'
+        'SSAO24'
+        'SSAO24r'
+        'DEAO')
+      TabIndex = 1
+      OnChange = RadioGroup_P_3Click
+      object Label_P_14: TLabel
+        Left = 9
+        Top = 76
+        Width = 86
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Calculation count:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+        Visible = False
+      end
+      object Label_P_15: TLabel
+        Left = 25
+        Top = 74
+        Width = 29
+        Height = 13
+        Caption = 'MaxL:'
+        Visible = False
+      end
+      object Label_P_16: TLabel
+        Left = 97
+        Top = 71
+        Width = 28
+        Height = 13
+        Caption = 'Rays:'
+        Visible = False
+      end
+      object Label_P_17: TLabel
+        Left = 127
+        Top = 71
+        Width = 6
+        Height = 13
+        Alignment = taCenter
+        Caption = '7'
+        Visible = False
+      end
+      object Label_P_20: TLabel
+        Left = 36
+        Top = 31
+        Width = 57
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Border size:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object Label_P_50: TLabel
+        Left = 22
+        Top = 53
+        Width = 71
+        Height = 13
+        Alignment = taRightJustify
+        Caption = 'Z/R Threshold:'
+        Font.Charset = DEFAULT_CHARSET
+        Font.Color = clWindowText
+        Font.Height = -11
+        Font.Name = 'Tahoma'
+        Font.Style = []
+        ParentFont = False
+      end
+      object CheckBox_P_12: TCheckBox
+        Left = 142
+        Top = 51
+        Width = 90
+        Height = 17
+        Hint = 
+          'Let the threshold decrease the ambient shadow down to 0.'#13#10'Far st' +
+          'ructures are less affected by nearer structures.'
+        Alignment = taLeftJustify
+        Caption = 'Threshold to 0:'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 1
+      end
+      object CheckBox_P_22: TCheckBox
+        Left = 154
+        Top = 30
+        Width = 68
+        Height = 33
+        Hint = 
+          'First step random:'#13#10'To avoid spotty artifacts on fomulas with ba' +
+          'd DE'#39's.'#13#10'For lower noise, use it with image downscaling and/or h' +
+          'igher raycounts.'#13#10'Can be used also together with dithering.'
+        Alignment = taLeftJustify
+        Caption = 'First Step Random:'
+        Color = clBtnFace
+        ParentColor = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 0
+        Visible = False
+        WordWrap = True
+      end
+      object Edit_P_21: TEdit
+        Left = 99
+        Top = 73
+        Width = 36
+        Height = 21
+        ParentShowHint = False
+        ReadOnly = True
+        ShowHint = True
+        TabOrder = 2
+        Text = '1'
+        Visible = False
+      end
+      object Edit_P_34: TEdit
+        Left = 99
+        Top = 50
+        Width = 36
+        Height = 21
+        Hint = 
+          'Defines up to which angle the shadowing will be calculated.'#13#10'Low' +
+          'er values: Far structures are less affected by near structures,'#13 +
+          #10'this is advanced when the structures got lots of holes.'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 3
+        Text = '2.00'
+      end
+      object Edit_P_8: TEdit
+        Left = 59
+        Top = 67
+        Width = 29
+        Height = 21
+        Hint = 
+          'Scales the maximum length of the ambient rays to be calculated.'#13 +
+          #10'Use a value bigger than 1 to give more depth to the shadows,'#13#10'v' +
+          'alues below 1 gives more local shadows.'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 4
+        Text = '1.0'
+        Visible = False
+      end
+      object Edit_P_9: TEdit
+        Left = 99
+        Top = 28
+        Width = 36
+        Height = 21
+        Hint = 
+          'The calculation will be extended towards the outside the image w' +
+          'ith reflected objects.'#13#10'This might lead to less artifacts in ani' +
+          'mations, but stills can profit from it too.'#13#10'Value should be in ' +
+          'the range of 0 to 0.5 (max 0.9), it is the size relative to the ' +
+          'image'#13#10'width and height that is maximal calculated on the outsid' +
+          'e.'
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 5
+        Text = '0.0'
+      end
+      object RadioGroup_P_5: TRadioGroup
+        Left = 12
+        Top = 27
+        Width = 127
+        Height = 33
+        Hint = 
+          'Option to dither the angle of rays for an image scaling of 1:2 o' +
+          'r 1:3.'#13#10'This leads to more precision and less spotty artifacts.'#13 +
+          #10'Caution: use only on the same image scaling, else you get dithe' +
+          'r artifacts.'
+        Caption = 'Dithering for scale:'
+        Color = clBtnFace
+        Columns = 3
+        ItemIndex = 0
+        Items.Strings = (
+          'no'
+          '1:2'
+          '1:3')
+        ParentBackground = False
+        ParentColor = False
+        ParentShowHint = False
+        ShowHint = True
+        TabOrder = 6
+        Visible = False
+      end
+      object UpDown_P_1: TUpDown
+        Left = 143
+        Top = 66
+        Width = 18
+        Height = 24
+        Hint = 
+          'Number of rays that will be calculated.'#13#10'The more the better but' +
+          ' slower, of course.'
+        Max = 3
+        ParentShowHint = False
+        Position = 1
+        ShowHint = True
+        TabOrder = 7
+        Visible = False
+        OnChangingEx = UpDown_P_1ChangingEx
+      end
+      object UpDown_P_3: TUpDown
+        Left = 135
+        Top = 73
+        Width = 16
+        Height = 21
+        Hint = 'Calculate n times to reduce noise by averaging'
+        Associate = Edit_P_21
+        Min = 1
+        Max = 9
+        ParentShowHint = False
+        Position = 1
+        ShowHint = True
+        TabOrder = 8
+        Visible = False
+      end
+    end
+  end
+  object ReflTransparencyPnl: TPanel
+    Left = 0
+    Top = 679
+    Width = 255
+    Height = 212
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 8
+    Visible = False
+    object Label_P_11: TLabel
+      Left = 133
+      Top = 39
+      Width = 33
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Depth:'
+    end
+    object Label_P_12: TLabel
+      Left = 27
+      Top = 39
+      Width = 41
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Amount:'
+    end
+    object Label_P_21: TLabel
+      Left = 110
+      Top = 91
+      Width = 56
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Absorption:'
+    end
+    object Label_P_22: TLabel
+      Left = 83
+      Top = 115
+      Width = 83
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Refractive index:'
+    end
+    object Label_P_23: TLabel
+      Left = 88
+      Top = 139
+      Width = 78
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Light scattering:'
+    end
+    object Button_P_15: TButton
+      Tag = 1
+      Left = 11
+      Top = 182
+      Width = 83
+      Height = 21
+      Hint = 
+        'Make sure that the '#39'Calc... automatic.'#39' options for the hard'#13#10'an' +
+        'd ambient shadows are set, if you wish to consider them.'
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_11Click
+    end
+    object CheckBox_P_24: TCheckBox
+      Tag = 5
+      Left = 27
+      Top = 9
+      Width = 204
+      Height = 17
+      Hint = 
+        'If enabled, the reflections will be calculated automatically aft' +
+        'er the'#13#10'previous calculations.'#13#10'Keep in mind that light changing' +
+        's afterwards will reset this calculation!'
+      Caption = 'Calculate R. (+ T.) automatically'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = CheckBox_P_24Click
+    end
+    object CheckBox_P_25: TCheckBox
+      Left = 12
+      Top = 162
+      Width = 207
+      Height = 17
+      Hint = 
+        'Option to calculate only a part of the image for a faster previe' +
+        'w.'#13#10'Make a selection in the image with the mouse before calculat' +
+        'ing.'
+      Caption = 'Calculate only a selection in the image'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = CheckBox_P_25Click
+    end
+    object CheckBox_P_27: TCheckBox
+      Left = 12
+      Top = 66
+      Width = 135
+      Height = 17
+      Hint = 
+        'If enabled the specular amount is split into inside going ray an' +
+        'd reflection.'
+      Caption = 'Calculate transparency:'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+    end
+    object CheckBox_P_28: TCheckBox
+      Left = 12
+      Top = 89
+      Width = 66
+      Height = 17
+      Hint = 
+        'Calculate transparency only on dIFS formulas (for DE combination' +
+        's with escapetimes)'
+      Caption = 'Only dIFS'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+    end
+    object Edit_P_11: TEdit
+      Left = 171
+      Top = 36
+      Width = 30
+      Height = 21
+      ParentShowHint = False
+      ReadOnly = True
+      ShowHint = True
+      TabOrder = 5
+      Text = '2'
+    end
+    object Edit_P_13: TEdit
+      Left = 171
+      Top = 88
+      Width = 52
+      Height = 21
+      Hint = 
+        'Absolute absorption amount inside the material (high zooms need ' +
+        'big values). The diffuse object color is also for inside.'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+      Text = '0.2'
+    end
+    object Edit_P_14: TEdit
+      Left = 171
+      Top = 112
+      Width = 52
+      Height = 21
+      Hint = 
+        'Refractive index of the material, air~1 water~1.33 glass~1.5 dia' +
+        'mond~2.4'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 7
+      Text = '1.5'
+    end
+    object Edit_P_17: TEdit
+      Left = 171
+      Top = 136
+      Width = 52
+      Height = 21
+      Hint = 'Light scattering inside the material'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 8
+      Text = '1.0'
+    end
+    object Edit_P_6: TEdit
+      Left = 73
+      Top = 36
+      Width = 37
+      Height = 21
+      Hint = 
+        'Total amount of reflectivity + transparency, it will be multipli' +
+        'ed with the local object specular color + transparency amount.'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+      Text = '1.0'
+    end
+    object UpDown_P_2: TUpDown
+      Left = 201
+      Top = 36
+      Width = 16
+      Height = 21
+      Associate = Edit_P_11
+      Min = 1
+      Max = 30
+      Position = 2
+      TabOrder = 10
+    end
+  end
+  object DepthOfFieldPnl: TPanel
+    Left = 0
+    Top = 912
+    Width = 255
+    Height = 203
+    Align = alTop
+    BevelOuter = bvNone
+    TabOrder = 9
+    Visible = False
+    object Label_P_1: TLabel
+      Left = 29
+      Top = 37
+      Width = 46
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Z1 sharp:'
+    end
+    object Label_P_18: TLabel
+      Left = 106
+      Top = 157
+      Width = 111
+      Height = 39
+      Caption = 'The effect accumulates, reset for a new calculation.'
+      WordWrap = True
+    end
+    object Label_P_19: TLabel
+      Left = 28
+      Top = 62
+      Width = 46
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Z2 sharp:'
+    end
+    object Label_P_2: TLabel
+      Left = 138
+      Top = 91
+      Width = 48
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'ClippingR:'
+    end
+    object Label_P_5: TLabel
+      Left = 29
+      Top = 91
+      Width = 47
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'Aperture:'
+    end
+    object Button_P_1: TButton
+      Left = 11
+      Top = 160
+      Width = 83
+      Height = 21
+      Hint = 
+        'This effect is accumulated on each button press, you can reset b' +
+        'y pressing'#13#10'the '#39'Reset'#39' button - but reflections would also be u' +
+        'ndone!'
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+      OnClick = Button_P_1Click
+    end
+    object Button_P_18: TButton
+      Tag = 10
+      Left = 154
+      Top = 59
+      Width = 85
+      Height = 21
+      Hint = 
+        'Press button and afterwards the object part'#13#10'in the image, that ' +
+        'should be sharp.'
+      Caption = 'Get Z2'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = Button_P_2Click
+    end
+    object Button_P_19: TButton
+      Left = 4
+      Top = 60
+      Width = 18
+      Height = 17
+      Hint = 'Copy Z1 to Z2 to get a focus point'
+      Caption = '->'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      OnClick = Button_P_19Click
+    end
+    object Button_P_2: TButton
+      Tag = 1
+      Left = 154
+      Top = 34
+      Width = 85
+      Height = 21
+      Hint = 
+        'Press button and afterwards the object part'#13#10'in the image, that ' +
+        'should be sharp.'
+      Caption = 'Get Z1'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = Button_P_2Click
+    end
+    object CheckBox_P_1: TCheckBox
+      Tag = 6
+      Left = 27
+      Top = 9
+      Width = 182
+      Height = 17
+      Hint = 
+        'If enabled, the DoF effect will be calculated'#13#10'automatically aft' +
+        'er the previous calculations.'#13#10'Choose the options before.'
+      Caption = 'Calculate DoF automatically'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 4
+      OnClick = CheckBox_P_1Click
+    end
+    object Edit_P_1: TEdit
+      Left = 81
+      Top = 34
+      Width = 62
+      Height = 21
+      Hint = 
+        'The (first) focus point.'#13#10'The value is relative to the viewers Z' +
+        'start value,'#13#10'normalized to the imagewidth.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 5
+      Text = '0.0'
+    end
+    object Edit_P_10: TEdit
+      Left = 81
+      Top = 59
+      Width = 62
+      Height = 21
+      Hint = 
+        'Second focus point, if different from the first one'#13#10'you get a f' +
+        'ocus line instead of a focus point.'#13#10'(physically not very realis' +
+        'tic, but good to have) '
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 6
+      Text = '0.0'
+    end
+    object Edit_P_2: TEdit
+      Left = 190
+      Top = 88
+      Width = 49
+      Height = 21
+      Hint = 
+        'The blur radius will be limited at this value.'#13#10'Can speedup rend' +
+        'ering when the radius becomes very huge in some image parts.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 7
+      Text = '25.0'
+    end
+    object Edit_P_3: TEdit
+      Left = 81
+      Top = 88
+      Width = 50
+      Height = 21
+      Hint = 
+        'The aperture on the Zsharp point, it is not the aperture from th' +
+        'e camera!'#13#10'Multply this value with the (free choosen) distance f' +
+        'rom the Zsharp point'#13#10'to the camera and divide it by the focal l' +
+        'ength of the cameras lense to get'#13#10'the cameras aperture.'#13#10'So dow' +
+        'nscale this value if you don'#39't expect the cameras size that big.' +
+        #13#10'Larger values means more blur.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Consolas'
+      Font.Style = []
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 8
+      Text = '0.02'
+    end
+    object RadioGroup_P_1: TRadioGroup
+      Left = 141
+      Top = 114
+      Width = 101
+      Height = 37
+      Hint = 
+        '2 or 3 passes gives a better strong bluring in front of the focu' +
+        's point.'#13#10'1 pass leads to a disc bokey, more passes yields to a ' +
+        'gaussian like bokey.'
+      Caption = 'Passes'
+      Columns = 3
+      ItemIndex = 0
+      Items.Strings = (
+        '1'
+        '2'
+        '3')
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 9
+    end
+    object RadioGroup_P_2: TRadioGroup
+      Left = 7
+      Top = 114
+      Width = 129
+      Height = 37
+      Hint = 
+        'Sorted calculation gives better results.'#13#10'Forward may be an opti' +
+        'on if Sorted is failing because of memory problems or so.'
+      Caption = 'Calculation'
+      Columns = 2
+      ItemIndex = 0
+      Items.Strings = (
+        'Sorted'
+        'Forward')
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 10
+    end
+  end
+  object GroupBox_P_4: TGroupBox
+    Left = 27
+    Top = 1121
+    Width = 449
+    Height = 65
+    Caption = 'LIGHT STROKES'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 0
+    Visible = False
+    object CheckBox_P_13: TCheckBox
+      Left = 106
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light1'
+      Checked = True
+      State = cbChecked
+      TabOrder = 0
+    end
+    object CheckBox_P_14: TCheckBox
+      Left = 162
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light2'
+      TabOrder = 1
+    end
+    object CheckBox_P_15: TCheckBox
+      Left = 218
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light3'
+      TabOrder = 2
+    end
+    object CheckBox_P_16: TCheckBox
+      Left = 274
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light4'
+      TabOrder = 3
+    end
+    object CheckBox_P_17: TCheckBox
+      Left = 330
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light5'
+      TabOrder = 4
+    end
+    object CheckBox_P_18: TCheckBox
+      Left = 386
+      Top = 39
+      Width = 49
+      Height = 17
+      Caption = 'Light6'
+      TabOrder = 5
+    end
+    object Button_P_17: TButton
+      Left = 12
+      Top = 16
+      Width = 83
+      Height = 21
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 6
+      OnClick = Button_P_17Click
+    end
+    object CheckBox_P_20: TCheckBox
+      Left = 121
+      Top = 11
+      Width = 272
+      Height = 17
+      Caption = 'Calculate random light strokes automatically'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 7
+      OnClick = CheckBox_P_9Click
+    end
+    object Edit_P_4: TEdit
+      Left = 8
+      Top = 41
+      Width = 89
+      Height = 21
+      TabOrder = 8
+      Text = '3765724374'
+    end
+  end
+  object GroupBox_P_10: TGroupBox
+    Left = 8
+    Top = 1153
+    Width = 449
+    Height = 42
+    Caption = 'Ambient light'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 2
+    Visible = False
+    object Shape_P_6: TShape
+      Left = 148
+      Top = 11
+      Width = 142
+      Height = 18
+      Brush.Style = bsClear
+      Pen.Style = psClear
+      Pen.Width = 0
+    end
+    object Button_P_20: TButton
+      Tag = 1
+      Left = 12
+      Top = 16
+      Width = 83
+      Height = 21
+      Caption = 'Calculate now'
+      TabOrder = 0
+      OnClick = Button_P_20Click
+    end
+    object CheckBox_P_26: TCheckBox
+      Tag = 6
+      Left = 154
+      Top = 11
+      Width = 131
+      Height = 17
+      Hint = 
+        'If enabled, the reflections will be calculated automatically aft' +
+        'er the'#13#10'previous calculations.'#13#10'Keep in mind that light changing' +
+        's afterwards will reset this calculation!'
+      Caption = 'Calc. R. automatic.'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 1
+      OnClick = CheckBox_P_9Click
+    end
+  end
+  object GroupBox_P_6: TGroupBox
+    Left = 4
+    Top = 1186
+    Width = 351
+    Height = 42
+    Caption = 'DOUBLE IMAGESIZE'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    TabOrder = 1
+    Visible = False
+    object Button_P_12: TButton
+      Left = 12
+      Top = 16
+      Width = 83
+      Height = 21
+      Caption = 'Calculate now'
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 0
+      OnClick = Button_P_12Click
+    end
+    object CheckBox_P_8: TCheckBox
+      Left = 121
+      Top = 15
+      Width = 222
+      Height = 17
+      Caption = 'Double the imagesize automatically'
+      Color = clBtnFace
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentColor = False
+      ParentFont = False
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+      OnClick = CheckBox_P_9Click
+    end
+  end
+  object ImageList_P_1: TImageList
+    Masked = False
+    Left = 16
+    Top = 40
+    Bitmap = {
+      494C010101002400540010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      0000000000003600000028000000400000001000000001002000000000000010
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000FF0000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000FF000000FF000000FF00000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000FF000000FF000000FF00000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      FF000000FF000000FF000000FF000000FF000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000000000000000FF000000
+      FF000000FF000000FF000000FF000000FF000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000000000000000808080000000FF000000
+      FF0000000000000000000000FF000000FF000000FF0000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000808080000000FF00000000000000
+      00000000000000000000000000000000FF000000FF0000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000000000000000FF000000FF000000FF00000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000FF000000FF00000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000FF000000FF000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000808080000000
+      FF00000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000008080
+      80000000FF000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000FF000000FF00000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000424D3E000000000000003E000000
+      2800000040000000100000000100010000000000800000000000000000000000
+      000000000000000000000000FFFFFF00FFFF000000000000FFFF000000000000
+      F9FF000000000000F0FF000000000000F0FF000000000000E07F000000000000
+      C07F000000000000843F0000000000001E3F000000000000FE1F000000000000
+      FF1F000000000000FF8F000000000000FFC7000000000000FFE3000000000000
+      FFF8000000000000FFFF00000000000000000000000000000000000000000000
+      000000000000}
+  end
+end

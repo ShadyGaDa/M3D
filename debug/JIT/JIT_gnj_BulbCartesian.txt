@@ -1,0 +1,8 @@
+JIT_gnj_BulbCartesian_02.m3f   --  Bulb of order 8 in cartesian coordinates
+JIT_gnj_BulbCartesian_m01.m3f  --  Mutation 1:  Adding fix values to each intermediate helper variable
+JIT_gnj_BulbCartesian_m02.m3f  --  Mutation 2:  Adding values to each of the summands, and partial powers of the intermediate factor value for x, and y calcuation
+JIT_gnj_BulbCartesian_m03.m3f  --  Mutation 3:  Varying some *factors* on the partial powers within the summands while calculation of intermediate helper variables, and (some) while the calculation of x/y/z
+JIT_gnj_BulbCartesian_m04.m3f  --  Mutation 4:  Adding other (wrong) power summands to some of the intermediate helper variables
+JIT_gnj_BulbCartesian_m05.m3f  --  Mutation 5:  Similar to 3; focus is more to the numeric factors of the summands
+JIT_gnj_BulbCartesian_m06.m3f  --  Mutation 6:  Follow up to Mutation 5 (because of the limit to 15 parameters per function)
+JIT_gnj_BulbCartesian_m07a.m3f --  Mutation 7:  A first arbitrary combination of some of the above

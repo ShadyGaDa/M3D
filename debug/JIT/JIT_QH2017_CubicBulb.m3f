@@ -1,0 +1,73 @@
+[OPTIONS]
+.DEScale = 1
+.SIPow = 2
+.Version = 9
+.Double a = 0.75
+.Double b = 0.75
+.Double c = 0.75
+.Double p = 0.25
+.Double q = 0.25
+.Double r = 0.25
+[SOURCE]
+procedure MyFormula(var x, y, z, w: Double; PIteration3D: TPIteration3D);
+var
+	// define variables 
+	xn, yn, zn: double;
+	xo, yo, zo: double;
+begin
+	// cx, cy, and cz define constant values
+	// according the c param in z^n+c in common Mandelbrot/Julia set
+	// MB3D will take care to set this value if defined as below
+	xo := PIteration3D^.J1;
+	yo := PIteration3D^.J2;
+	zo := PIteration3D^.J3;
+	
+	// x, y, and z represent iterated variable.
+	// No need to initialize them, etc. Just read and write them as you want.
+	//This is the Cubic formulae, with user variations:
+       x := a*x;
+	y := b*y;
+	z := c*z;
+	xn := x*x*x - 3*x*(y*y + z*z) + xo;
+	yn := -y*y*y + 3*y*x*x - y*z*z + yo;
+	zn := z*z*z - 3*z*x*x + z*y*y + zo;
+
+// Add constants
+	x := xn + p;
+	y := yn + q;
+	z := zn + r;
+end;
+
+[END]
+JIT QuardaticBulb Formula.
+
+The formula uses the basic iterated Cubic formulae to make a 3D fractal object;
+
+The originating point is (xo, yo, zo);
+
+x = x^3 - 3*x(y^2 + z^2) + xo;
+y = -y^3 + 3*y*x^2 - y*z^2 + yo;
+z = z^3 - 3*z*x^2 + z*y^2 + zo;
+
+This formula is modulated by six user-controlled numeric variables;
+a, b, c are applied to vary the x,y and z variables, 
+with the scalar a for the x-values, scalar b for the y-values, and scalar c for the z-values,
+and 
+with the constants p, q, r added to z, y and z, respectively,
+as follows:
+
+1. Scale the function variables first with user input, a, b, c.
+	x := a*x;
+	y := b*y;
+	z := c*z;
+2. Calculate the next point values:
+	xn := x*x*x - 3*x(y*y + z*Z) + xo;
+	yn := -y*y*y + 3*y*x*x - y*z*z + yo;
+	zn := z*z*z - 3*z*x*x + z*y*y + zo;
+3. Scale the reulting point u=with user input variables, p, q, and r:
+	x := xn + p;
+	y := yn + q;
+	z := zn + r;
+
+The base image looks like an onion of sorts, from the default view. 
+Enjoy!

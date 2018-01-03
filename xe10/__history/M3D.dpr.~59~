@@ -1,0 +1,87 @@
+program M3D;
+
+{$RTTI EXPLICIT METHODS([]) FIELDS([]) PROPERTIES([])}
+{$WeakLinkRTTI ON}
+
+{$R 'M3Iregister.res' '..\util\M3Iregister.rc'}
+
+uses
+  Vcl.Forms,
+  Vcl.Themes,
+  Vcl.Styles,
+  MAIN in '..\MAIN.pas' {GUI},
+  TextBox in '..\TextBox.pas' {FTextBox},
+  NavGUI in '..\NavGUI.pas' {GUINav},
+  uTEST in '..\MUTATE\uTEST.pas' {fTEST},
+  ColorPick in '..\ColorPick.pas' {ColorForm},
+  uMapCalcWindow in '..\MAP\uMapCalcWindow.pas' {MapCalcWindow},
+  IniDirsForm in '..\prefs\IniDirsForm.pas' {IniDirForm},
+  VisualThemesGUI in '..\prefs\VisualThemesGUI.pas' {VisualThemesFrm},
+  uM2T in '..\uM2T.pas' {fM2T},
+  formulas in '..\formula\formulas.pas',
+  AmbHiQ in '..\util\AmbHiQ.pas',
+  AmbShadowCalcThreadN in '..\util\AmbShadowCalcThreadN.pas',
+  Calc in '..\util\Calc.pas',
+  CalcAmbShadowDE in '..\util\CalcAmbShadowDE.pas',
+  calcBlocky in '..\util\calcBlocky.pas',
+  CalcHardShadow in '..\util\CalcHardShadow.pas',
+  CalcSR in '..\util\CalcSR.pas',
+  CalcThread in '..\util\CalcThread.pas',
+  CalcThread2D in '..\util\CalcThread2D.pas',
+  DivUtils in '..\util\DivUtils.pas',
+  DOF in '..\util\DOF.pas',
+  FileHandling in '..\util\FileHandling.pas',
+  TypeDefinitions in '..\util\TypeDefinitions.pas',
+  Undo in '..\util\Undo.pas',
+  Math3D in '..\util\Math3D.pas',
+  CustomFormulas in '..\formula\CustomFormulas.pas',
+  M3Iregister in '..\util\M3Iregister.pas',
+  Interpolation in '..\util\Interpolation.pas',
+  ImageProcess in '..\util\ImageProcess.pas',
+  HeaderTrafos in '..\util\HeaderTrafos.pas',
+  Paint in '..\util\Paint.pas',
+  PaintThread in '..\util\PaintThread.pas',
+  RegisterM3Pgraphic in '..\util\RegisterM3Pgraphic.pas',
+  Maps in '..\MAP\Maps.pas',
+  MapSequences in '..\MAP\MapSequences.pas',
+  uLight in '..\uLight.pas',
+  Helper in '..\Helper.pas',
+  ListBoxEx in '..\CUSTOM\ListBoxEx.pas',
+  SpeedButtonEx in '..\CUSTOM\SpeedButtonEx.pas',
+  TrackBarEx in '..\CUSTOM\TrackBarEx.pas',
+  uCPU in '..\util\uCPU.pas',
+  FormulaCompiler in '..\COMPILER\FormulaCompiler.pas',
+  JITFormulas in '..\COMPILER\JITFormulas.pas';
+
+{$R *.res}
+
+{$SetPEFlags $20}
+
+begin
+  SetMinimumBlockAlignment(mba16Byte);
+  Application.Initialize;
+  Application.Title := 'M3D';
+  Application.CreateForm(TGUI, GUI);
+  Application.CreateForm(TGUINav, GUINav);
+  Application.CreateForm(TfTEST, fTEST);
+  Application.CreateForm(TColorForm, ColorForm);
+  Application.CreateForm(TMapCalcWindow, MapCalcWindow);
+  Application.CreateForm(TIniDirForm, IniDirForm);
+  Application.CreateForm(TVisualThemesFrm, VisualThemesFrm);
+  Application.CreateForm(TfM2T, fM2T);
+  Application.CreateForm(TFTextBox, FTextBox);
+  //Application.CreateForm(TJITFormulaEditorForm, JITFormulaEditorForm);
+  //Application.CreateForm(TParamValueEditFrm, ParamValueEditFrm);
+  //Application.CreateForm(TMutaGenFrm, MutaGenFrm);
+  //Application.CreateForm(TMapSequencesFrm, MapSequencesFrm);
+  //Application.CreateForm(TAnimationForm, AnimationForm);
+  //Application.CreateForm(TAniPreviewForm, AniPreviewForm);
+  //Application.CreateForm(TAniProcessForm, AniProcessForm);
+  //Application.CreateForm(TBatchForm1, BatchForm1);
+  //Application.CreateForm(TBRInfoForm, BRInfoForm);
+  //Application.CreateForm(TFColorOptions, FColorOptions);
+  //Application.CreateForm(TMCForm, MCForm);
+  //Application.CreateForm(TTilingForm, TilingForm);
+  //Application.CreateForm(TFVoxelExport, FVoxelExport);
+  Application.Run;
+end.

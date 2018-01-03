@@ -1,0 +1,1143 @@
+unit uM3P;
+
+interface
+
+uses
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.Buttons,
+  Vcl.ExtCtrls,
+  Vcl.StdCtrls,
+  M3PCalcThread,
+  MB3DFacade,
+  MutaGen,
+  PreviewRenderer,
+  System.Contnrs,
+  FileHandling,
+  TypeDefinitions,
+  DivUtils,
+  Math3D;
+
+
+type
+  TfM3P = class(TForm)
+    OpenDialog_P_1: TOpenDialog;
+    Timer_P_1: TTimer;
+    ctrlPanel: TPanel;
+    Button_P_5: TSpeedButton;
+    lbl_Active: TLabel;
+    HiQ: TCheckBox;
+    Label_N_8: TLabel;
+    Edit_N_3: TEdit;
+    RadioGroup_N_2: TRadioGroup;
+    Label_N_27: TLabel;
+    Label_N_28: TLabel;
+    Label_N_29: TLabel;
+    Label_N_30: TLabel;
+    SpeedButton_N_P_TO_MAIN_14: TSpeedButton;
+    ScrollBox1: TScrollBox;
+    MainPnl: TPanel;
+    Panel_1: TPanel;
+    Image_1: TImage;
+
+    procedure Button_P_5Click(Sender: TObject);
+    procedure Timer_P_1Timer(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure HiQClick(Sender: TObject);
+    procedure SpeedButton_N_P_TO_MAIN_14Click(Sender: TObject);
+    procedure WmThreadReady(var Msg: TMessage);
+    procedure WmThreadStat(var Msg: TMessage);
+
+    procedure MainPnlResize(Sender: TObject);
+
+  private
+    { Private declarations }
+    actStepWidth, iActiveThreads: Integer;
+    CalcThreadStatusID: Integer;
+    b_Active: Boolean;
+    M3PHeader: TMandHeader10;
+    HybridCustoms: array[0..5] of TCustomFormula;
+    M3PHAddon: THeaderCustomAddon;
+    InternAspectM3P: Double;
+    bUserChangeP: LongBool;
+    Moving: LongBool;
+    NDEmultiplier: Single;
+    NLPavailable: array[0..2] of LongBool;
+    MCTparas: Array [0..64] of TMCTparameter;
+    M3PLightness: Single;
+//    M3PLightPresets: array[0..2] of TLightingParas9;
+    BGpicRotMatrix: TSMatrix3;
+    DynFogAmountChanged: LongBool;
+//---
+    FPanelList: TMutaGenPanelList;
+    FPreviewImageRenderer: TPreviewRenderer;
+    FMutationHistory: TList;
+    FCurrGenerationIndex: Integer;
+    FP_1 : TMutaGenPanel;
+//---
+    function LoadParameterM3P(var Para10: TMandHeader10; FileName: String; Verbose: LongBool): Boolean;
+    procedure SetEditsFromHeaderM3P;
+    procedure NewCalc;
+    procedure StopCalc;
+    procedure Calc(Nstep: Integer);
+    function isCalculating: LongBool;
+    procedure MakeLightValsFromHeaderLightM3P(Header: TPMandHeader10; Lvals: TPLightValsM3P; ImScale: Double);
+    procedure InterpolateColors(Lvals: TPLightValsM3P; PSVAdif, PSVAspec, PSVAinside: TPSVecArray; HLight: TPLightingParas9);
+    procedure SetHeaderSize;
+    procedure SetWindowSize;
+    procedure MakeM3PHeader;
+//---
+    function CreateBlankBitmap(const Width, Height: Integer): TBitmap;
+    function CreatePreviewImage(const Panel: TMutaGenPanel; const Params: TMB3DParamsFacade): TBitmap;
+    function CloneBitmap(const Src: TBitmap): TBitmap;
+    function AddGeneration: TMutationParamsSet;
+    function CreatePanelList: TMutaGenPanelList;
+//---
+  public
+    { Public declarations }
+    M3PLightVals: TLightValsM3P;
+    procedure RestartFromMain;
+    procedure ClearPanels;
+    procedure CreateInitialSet;
+
+  end;
+
+var
+  fM3P: TfM3P;
+  NglobalCounter: Integer = 0;
+  NminDEcorrection: Single = 1000;
+
+implementation
+//uses Calc ?? rename ??;
+
+uses
+  MAIN,
+  HeaderTrafos,
+  ThreadUtils,
+  System.Math,
+  Interpolation,
+  CustomFormulas;//,
+  //CalcThread;
+
+{$R *.dfm}
+
+
+procedure TfM3P.RestartFromMain;
+begin
+  ClearPanels;
+  CreateInitialSet;
+end;
+
+procedure TfM3P.ClearPanels;
+var
+  I: Integer;
+  Panel: TMutaGenPanel;
+begin
+    ///FPanelList.Count:=1;
+  for I := 1 to FPanelList.Count-1 do begin
+    Panel := FPanelList.GetPanel(I);//I
+    Panel.Bitmap := CreateBlankBitmap(Panel.ImageWidth, Panel.ImageHeight);
+  end;
+end;
+
+function TfM3P.CreateBlankBitmap(const Width, Height: Integer): TBitmap;
+begin
+  Result := TBitmap.Create;
+  Result.PixelFormat := pf32Bit;
+  Result.Width  := Width;
+  Result.Height := Height;
+  Result.Canvas.Brush.Color := ColorToRGB(clBackground);
+  Result.Canvas.FillRect(Rect(0,0, Width, Height));
+end;
+
+procedure TfM3P.CreateInitialSet;
+var
+  CurrSet: TMutationParamsSet;
+  NewBitmap: TBitmap;
+begin
+  //CurrSet := AddGeneration;
+//  CurrSet:=TMutationParamsSet.Create;
+//  FCurrGenerationIndex := 1;//FMutationHistory.Count;
+//  FMutationHistory.Add(CurrSet);
+  //
+  CurrSet.Params[miP_1].Params := TMB3DParamsFacade.Create(GUI.MHeader, GUI.HAddOn);
+  NewBitmap := CreatePreviewImage(FP_1, CurrSet.Params[miP_1].Params );
+  CurrSet.Params[miP_1].Bitmap := NewBitmap;
+  //if True then
+  FP_1.Bitmap := CloneBitmap( NewBitmap );
+  FP_1.Panel.Caption := CurrSet.Params[miP_1].Params.UUID;
+end;
+
+function TfM3P.CloneBitmap(const Src: TBitmap): TBitmap;
+begin
+  Result := TBitmap.Create;
+  Result.Assign(Src);
+end;
+
+function TfM3P.CreatePreviewImage(const Panel: TMutaGenPanel; const Params: TMB3DParamsFacade): TBitmap;
+begin
+  if FPreviewImageRenderer <> nil then
+    FreeAndNil(FPreviewImageRenderer);
+  Result := TBitmap.Create;
+  try
+    FPreviewImageRenderer := TPreviewRenderer.Create(Params);
+    try
+      FPreviewImageRenderer.RenderPreview(Result, Panel.ImageWidth, Panel.ImageHeight );
+    finally
+      FreeAndNil( FPreviewImageRenderer );
+    end;
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+function TfM3P.AddGeneration:TMutationParamsSet;
+begin
+  Result := TMutationParamsSet.Create;
+  FCurrGenerationIndex := FMutationHistory.Count;
+  FMutationHistory.Add(Result);
+//  RefreshGenerationLabel;
+end;
+
+
+
+
+
+procedure TfM3P.Button_P_5Click(Sender: TObject);  // open parameter
+begin
+//    PageCtrls.ActivePage := TabImage;
+    if OpenDialog_P_1.Execute and LoadParameterM3P(M3PHeader, OpenDialog_P_1.FileName, True) then
+    begin
+//      AllPresetsUp;
+//      OutMessage('Parameters loaded, press "Calculate 3D" to render.');
+//      ClearScreen;
+      Image_1.Picture.Bitmap.Canvas.FillRect(Image_1.Picture.Bitmap.Canvas.ClipRect);
+      SetSaveDialogNames(OpenDialog_P_1.FileName);
+
+      NewCalc;
+
+    end;
+end;
+
+
+function TfM3P.LoadParameterM3P(var Para10: TMandHeader10; FileName: String; Verbose: LongBool): Boolean;
+var f: file;
+    d: Double;
+    MId, i: Integer;
+    p: TP6;
+    MandHeader4: TMandHeader4;
+    para9: TMandHeader9;
+    TileSize: TPoint;
+begin
+    SaveHeaderPointers(@para10, p);
+    Result := False;
+    LastHisParSaveTime := Now;
+    if FileExists(FileName) then
+    try
+      //if Verbose then
+      Caption:= '' + ChangeFileExtSave(ExtractFileName(FileName), '');
+      AssignFile(f, FileName);
+      Reset(f, 1);
+      BlockRead(f, MId, 4);
+      if (MId < 0) or (MId > 250) or (FileSize(f) < 100) then Exit;
+      Seek(f, 0);
+      if MId < 4 then
+      begin
+        BlockRead(f, MandHeader4, SizeOf(TMandHeaderOld));
+        FillChar(MandHeader4.dFOVy, 72, 0);
+      end
+      else if MId < 7 then
+        BlockRead(f, MandHeader4, SizeOf(TMandHeader4))
+      else if MId < 8 then
+        BlockRead(f, Para9, SizeOf(TMandHeader9) - 124)
+      else if MId < 20 then
+        BlockRead(f, Para9, SizeOf(TMandHeader9))
+      else BlockRead(f, Para10, SizeOf(TMandHeader10));
+      if (MId < 5) and (MandHeader4.dZstart > MandHeader4.dZend) then
+      begin
+        MandHeader4.dZstart := - MandHeader4.dZstart;
+        MandHeader4.dZend   := - MandHeader4.dZend;
+        d                   := MandHeader4.dXrot;
+        MandHeader4.dXrot   := MandHeader4.dYrot * Pid180;
+        MandHeader4.dYrot   := d * Pid180;
+        MandHeader4.Light.Cols[7] := MandHeader4.Light.Cols[4];
+        MandHeader4.Light.Cols[8] := MandHeader4.Light.Cols[5];
+        MandHeader4.Light.Cols[9] := MandHeader4.Light.Cols[6];
+      end;
+      if MId < 5 then
+        MandHeader4.dZmid := (MandHeader4.dZstart + MandHeader4.dZend) * 0.5
+      else if (MId = 5) and ((MandHeader4.iOptions and 15) = 10) then
+      begin
+        MandHeader4.dPow := (MandHeader4.iOptions shr 18) and 3;
+        i := (MandHeader4.iOPtions and $38000) shr 1;
+        MandHeader4.iOptions := (MandHeader4.iOptions and $7FFC3FFF) or i;
+      end;
+      if MId < 7 then
+      begin
+        if MId < 6 then MandHeader4.bHScalculated := 1;
+        MandHeader4.Light.TBoptions := MandHeader4.Light.TBoptions or (43 shl 11);
+        Convert4to7paras(MandHeader4, TMandHeader8(Para9));
+      end
+      else if MId < 8 then
+        ConvertFromOldLightParas(Para9.Light, 148);
+
+      para10.MandId := MId;
+      //GUI.Authors := ExtractAuthorsFromPara(@para10);   //if MId > 40
+      InsertHeaderPointers(@para10, p);
+
+      if MId < 20 then
+      begin
+        for i := 0 to 5 do para9.PHCustomF[i] := p[i];
+        Para9.PCFAddon := p[6];
+        Result := ConvertHeaderFromOldParas(TMandHeader8(Para9), True);
+        FastMove(Para9, Para10, SizeOf(TMandHeader9));
+        ConvertLight8to9(Para9.Light, Para10.Light);
+      end
+      else
+      begin
+        Result := True;
+        if Verbose then LoadBackgroundPicT(@Para10.Light);
+      end;
+      if Result and Verbose then  //not verbose only for canload test
+      begin
+        if MId > 15 then       //Load HAddon
+        begin
+          if MId > 17 then
+          begin
+            if MId > 18 then
+            begin
+              if MId < 35 then para10.TilingOptions := 0;
+              TileSize := GetTileSize(@para10);
+              i := TileSize.X * TileSize.Y * SizeOf(TsiLight5);
+            end
+            else
+              i := Para10.Width * Para10.Height * SizeOf(TsiLight4);
+          end
+          else i := Para10.Width * Para10.Height * SizeOf(TsiLight3);
+          if FileSize(f) >= FilePos(f) + i + SizeOf(THeaderCustomAddonOld) then
+            Seek(f, FilePos(f) + i);
+          LoadHAddon(f, PTHeaderCustomAddon(Para10.PCFAddon));
+        end;
+        if MId < 20 then UpdateFormulaOptionTo20(PTHeaderCustomAddon(Para10.PCFAddon));
+        UpdateFormulaOptionAbove20(para10);
+        UpdateLightParasAbove3(para10.Light);
+        IniCFsFromHAddon(PTHeaderCustomAddon(Para10.PCFAddon), Para10.PHCustomF);
+      //  GUI.HAddOn.bHCAversion := 16;//test
+        bSRVolLightMapCalculated := False;
+
+        SetEditsFromHeaderM3P;
+        //GUI.allPreSetsUp;
+        //GUI.MButtonsUp;
+
+        InternAspectM3P := para10.Width / Max(1, para10.Height);
+
+        //FastMove(GUI.MHeader.Light, LHPSLight, SizeOf(TLightingParas9));
+        //GUI.bUserChangeL := False;{LIGHT}
+        //GUI.CheckBox_L_21.Checked := False;{LIGHT}
+        //GUI.SetLightFromHeader(Para10);{LIGHT}
+
+        //StoreUndoLight;
+
+        //if Para10.Light.BGbmp[0] = 0 then GUI.Image_L_5.Visible := False else
+        //  MakeLMPreviewImage(GUI.Image_L_5, @M3DBackGroundPic);{LIGHT}
+        SetSaveDialogNames(FileName);
+  //      GUI.Caption := ExtractFileName(FileName);
+        //GUI.Label_M_1.Caption := '';
+      end;
+    finally
+      CloseFile(f);
+    end;
+end;
+
+procedure TfM3P.SetEditsFromHeaderM3P;
+//var TileRect: TRect;
+//    Crop: Integer;
+begin
+    bUserChangeP := False;
+    with M3PHeader do
+    try
+      if (Width > 0) and (Height > 0) then InternAspectM3P := Width / Height;
+
+      //btnCalc3D.SetFocus;
+
+//      if M3PHeader.TilingOptions <> 0 then
+//      begin
+//        GetTilingInfosFromHeader(@M3PHeader, TileRect, Crop);
+//        ed_width.Text := IntToStr(TileRect.Right - TileRect.Left + 1 - 2 * Crop);
+//        ed_height.Text := IntToStr(TileRect.Bottom - TileRect.Top + 1 - 2 * Crop);
+//      end else begin
+//        ed_width.Text := IntToStr(Width);
+//        ed_height.Text := IntToStr(Height);
+//      end;
+
+//      Edit_M_1.Text  := FloatToStr(dZstart);
+//      Edit_M_3.Text  := FloatToStr(dZend);
+//      Edit_M_6.Text  := FloatToStrSingle(mZstepDiv);
+//      Edit_M_9.Text  := FloatToStr(dXmid);
+//      Edit_M_10.Text := FloatToStr(dYmid);
+//      Edit_M_5.Text  := FloatToStr(dZoom);
+//      Edit_M_14.Text := FloatToStr(dFOVy);
+//      Edit_M_17.Text := FloatToStr(dZmid);
+//      Edit_M_2.Text  := FloatToStrSingle(sColorMul);
+//      Edit_M_8.Text  := FloatToStrSingle(sRaystepLimiter);
+//      Edit_M_15.Text := FloatToStrSingle(StereoScreenWidth);
+//      Edit_M_18.Text := FloatToStrSingle(StereoScreenDistance);
+//      Edit_M_13.Text := FloatToStrSingle(StereoMinDistance);
+//      Edit_M_25.Text := FloatToStrSingle(sDEstop);
+
+//      if Edit_M_33.Text <> Authors[0] then
+//      begin
+//        Edit_M_33.Enabled := (Authors[0] = IniVal[33]) or (Length(Authors[0]) < 2);
+//        Edit_M_33.Text := Authors[0];
+//      end;
+//      Edit_M_34.Text := Authors[1];
+
+//      SpinEdit_M_2.Position := (iOptions shr 6) and 15;
+//      SpinEdit_M_5.Position := bStepsafterDEStop;
+//      CheckBox_M_1.Checked := (bNormalsOnDE and 1) <> 0;
+//      CheckBox_M_3.Checked := (iOptions and 1) <> 0;
+//      CheckBox_M_8.Checked := (iOptions and 2) <> 0;
+//      CheckBox_M_2.Checked := (iOptions and 4) <> 0;
+//      Label_M_31.Caption := IntToStr(iAvrgDEsteps div 10) + '.' + IntToStr(iAvrgDEsteps mod 10);
+//      Label_M_32.Caption := IntToStr(iAvrgIts div 10) + '.' + IntToStr(iAvrgIts mod 10);
+//      if iMaxIts > 0 then Label_M_40.Caption := IntToStr(iMaxIts)
+//                     else Label_M_40.Caption := '?';
+//      Label_M_52.Caption := IntToTimeStr(iCalcTime);
+//      Label_M_8.Caption  := IntToTimeStr(iCalcHStime);
+//      Label_M_48.Caption := IntToTimeStr(iAmbCalcTime);
+//      Label_M_50.Caption := IntToTimeStr(iReflectsCalcTime);
+//      Edit_M_22.Text := FloatToStr(dCutZ);
+//      Edit_M_23.Text := FloatToStr(dCutX);
+//      Edit_M_24.Text := FloatToStr(dCutY);
+
+      bImageScale := Max(1, Min(10, bImageScale));
+      ImageScale := bImageScale;
+
+//      SpeedButton_M_35.Caption := '1:' + IntToStr(ImageScale);
+//      CheckBox_M_4.Checked := (bCutOption and 1) > 0;
+//      CheckBox_M_5.Checked := (bCutOption and 2) > 0;
+//      CheckBox_M_6.Checked := (bCutOption and 4) > 0;
+//      CheckBox_M_9.Checked := (bVaryDEstopOnFOV > 0);
+//      CheckBox_M_7.Checked := bIsJulia > 0;
+//      RadioGroup_M_2.ItemIndex := bPlanarOptic;
+//      RadioGroup_M_1.ItemIndex := byColor2Option;
+//      Edit_M_28.Text := FloatToStr(dJx);
+//      Edit_M_29.Text := FloatToStr(dJy);
+//      Edit_M_30.Text := FloatToStr(dJz);
+//      Edit_M_7.Text := FloatToStr(dJw);
+//      SetEdit_M_16Text;
+//      Edit_M_35.Text := IntToStr(bColorOnIt - 1);
+//      PageControl_M_1Change(Self);
+
+      //SetEulerEditsFromHeader;
+
+      //UpdateFromHeader(@M3PHeader);{FORMULA}
+
+    finally
+      bUserChangeP := True;
+    end;
+end;
+
+
+procedure TfM3P.NewCalc;
+begin
+    Inc(NglobalCounter);
+    actStepWidth   := 16;
+    Timer_P_1.Enabled := True;
+end;
+
+procedure TfM3P.StopCalc;
+begin
+    Inc(NglobalCounter);
+    actStepWidth := 1;
+end;
+
+procedure TfM3P.FormCreate(Sender: TObject);
+var i: Integer;
+begin
+  FMutationHistory := TObjectList.Create;
+  FPanelList := CreatePanelList;
+  FPanelList.DoLayout;
+//  RefreshMutateButtonCaption;
+//  InitProgress;
+//  InitOptionsPanel;
+
+//    Image_1.Parent.ControlStyle := [csOpaque];
+////    FirstStart := True;
+//    bUserChangeP := False;
+//    NglobalCounter := 0;
+//    M3PLightness := 1;
+//    DoubleBuffered := True;
+//    M3PHeader.PCFAddon := @M3PHAddon;
+//    for i := 0 to 5 do M3PHeader.PHCustomF[i] := @HybridCustoms[i];
+//    for i := 0 to 5 do IniCustomF(@HybridCustoms[i]);
+//    for i := 0 to 2 do NLPavailable[i] := False;
+//    Panel_1.DoubleBuffered := True;
+//    //FNaviFormCreated := True;
+////    NaviSizeCmb.ItemIndex := NaviSizeCmb.Items.IndexOf(IniVal[36]);
+end;
+
+procedure TfM3P.MainPnlResize(Sender: TObject);
+begin
+  if Assigned(FPanelList) then begin
+    FPanelList.DoLayout;
+    MainPnl.Invalidate;
+    MainPnl.Repaint;
+  end;
+end;
+
+function TfM3P.CreatePanelList: TMutaGenPanelList;
+const
+  PnlXSize = 0.9;
+  PnlYSize = 0.8;
+  DLine = 0.05;
+begin
+  Result := TMutaGenPanelList.Create(MainPnl, 5.0, 4.0);
+  FP_1 := TMutaGenPanel.Create(nil, miP_1, 0.0, -1.0, PnlXSize, PnlYSize, '1', Panel_1, Image_1);
+  Result.AddPanel(FP_1);
+end;
+
+
+
+procedure TfM3P.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+//    StopCalc;
+//    CanClose := (not isCalculating) or ((NglobalCounter - CalcThreadStatusID) > 3);
+//    Timer_P_1.Enabled := not CanClose;
+end;
+
+
+procedure TfM3P.Timer_P_1Timer(Sender: TObject);
+//var b_Active: Boolean;
+begin
+//    if b_Active then b_Active:=False else b_Active:=True;
+//    with lbl_Active do begin if b_Active then Caption := '\/\/\/\/' else Caption := '/\/\/\/\'; end;
+//
+//    Timer_P_1.Interval := 100;
+//    Image_1.Repaint;
+//    if not isCalculating then
+//    begin
+//      lbl_Active.Color := clBtnFace;
+//      lbl_Active.Caption := '--------';
+//      iActiveThreads := 0;
+//      actStepWidth := actStepWidth shr 1;
+//      if actStepWidth = 0 then
+//        Timer_P_1.Enabled := False
+//      else Calc(actStepWidth);
+//
+//    end;
+end;
+
+function TfM3P.isCalculating: LongBool;
+begin
+    Result := GetActiveThreadCount(CalcThreadStatusID) > 0;
+end;
+
+
+procedure TfM3P.HiQClick(Sender: TObject);
+begin
+    NewCalc;
+end;
+
+
+procedure TfM3P.Calc(Nstep: Integer);
+var I, x, nThreadCount: Integer;
+    bAllOK: LongBool;
+    CalcThread: array of TM3PCalcThread;
+begin
+  GUI.bHideMessages := True;
+  bAllOK := False;
+  try
+    nThreadCount := Min(GUI.UpDownThread.Position, M3PHeader.Height);
+    if Nstep = 8 then
+    begin
+//      Label_N_24.Caption := FloatToStrF(M3PHeader.dZoom, ffGeneral, 4, 1);
+//      if M3PHeader.dZoom > 1e13 then Label_N_24.Font.Color := clRed
+//                                 else Label_N_24.Font.Color := clWindowText;
+      SetWindowSize;
+//      if Moving then   //if objectparts are nearer than DE..
+      NDEmultiplier := NDEmultiplier * MinMaxCD(0.5, NminDEcorrection *
+        (M3PHeader.dZoom * M3PHeader.Width) / (LengthOfSize(@M3PHeader) * 2), 1); //  LengthOfSize(@M3PHeader) * 2 / (dZoom * Width) :=  AbsDE;
+
+      NminDEcorrection          := 1000;
+      M3PHeader.mZstepDiv       := 0.7 - 0.35 * (Byte(HiQ.Checked) and 1);
+      M3PHeader.sRaystepLimiter := MaxCS(M3PHeader.sRaystepLimiter, M3PHeader.mZstepDiv * 0.5);
+      M3PHeader.bCalc3D         := 1;
+      M3PHeader.dFOVy           := StrToFloatK(Edit_N_3.Text);
+      M3PHeader.bPlanarOptic    := RadioGroup_N_2.ItemIndex;
+      bGetMCTPverbose           := False;
+      for I := 0 to nThreadCount - 1 do begin
+        MCTparas[I]             := getMCTparasFromHeader(M3PHeader, True);
+        bGetMCTPverbose         := I = 0;
+        if MCTparas[I].DEoption = 20 then MCTparas[I].iDEAddSteps := 7 else MCTparas[I].iDEAddSteps := 4;
+        MakeLightValsFromHeaderLightM3P(@M3PHeader, @M3PLightVals, 1);
+        MCTparas[I].ZcMul        := MCTparas[I].ZcMul * 0.00390625;   //because navi uses old light paras
+{!!}    MCTparas[I].PLValsNavi   := @M3PLightVals;
+        MCTparas[I].msDEsub      := 0;
+        if (M3PHeader.Light.TBoptions and $20000) = 0 then MCTparas[I].ColorOption := 9; //smoothits, else 2nd choice functions
+      end;
+      //tests:
+     // Label_N_18.Caption := 'Correction: ' + FloatToStr(NDEmultiplier);
+    end;
+    for I := 0 to nThreadCount - 1 do begin
+      MCTparas[I].FSIstart      := Integer(Image_1.Picture.Bitmap.ScanLine[0]);
+      MCTparas[I].FSIoffset     := Integer(Image_1.Picture.Bitmap.ScanLine[1]) - MCTparas[I].FSIstart;
+{!!}  MCTparas[I].NaviStep      := Nstep;
+      MCTparas[I].SLwidMNpix    := MCTparas[I].FSIoffset div 4 - Nstep;
+      SetLength(CalcThread, nThreadCount);
+      for x := 0 to 5 do if MCTparas[I].nHybrid[x] > 0 then bAllOK := True;
+    end;
+  finally
+    GUI.bHideMessages := False;
+  end;
+  if bAllOK then
+  begin
+    for x := 0 to nThreadCount - 1 do
+    begin
+      MCTparas[x].iThreadId := x + 1;
+      try
+        CalcThread[x]                 := TM3PCalcThread.Create(True);
+        CalcThread[x].FreeOnTerminate := True;
+        CalcThread[x].MCTparas        := MCTparas[x];
+        CalcThread[x].M3PLightVals    := M3PLightVals;
+        CalcThread[x].M3PLightVals.PLValignedM3P :=
+          TPLValignedM3P((Integer(@CalcThread[x].M3PLightVals.LColSbuf[0]) + 15) and $FFFFFFF0);
+        FastMove(M3PLightVals.PLValignedM3P^, CalcThread[x].M3PLightVals.PLValignedM3P^, SizeOf(TLValignedM3P));
+        CalcThread[x].Priority        := cTPrio[GUI.ComboBoxThread.ItemIndex];
+      except
+        nThreadCount := x;
+        Break;
+      end;
+    end;
+    iActiveThreads := nThreadCount;
+    MCTparas[0].PCalcThreadStats := GetNewThreadStatRecord(CalcThreadStatusID, nThreadCount, 0, Self.Handle);
+    NglobalCounter := CalcThreadStatusID;
+    if (CalcThreadStatusID = 0) or (MCTparas[0].PCalcThreadStats = nil) then
+    begin
+      GUI.OutMessage('Failed to create ThreadStats');
+      for x := 0 to nThreadCount - 1 do CalcThread[x].Free;
+      Exit;
+    end;
+    for x := 1 to nThreadCount do
+    begin
+      CalcThread[x - 1].MCTparas.iThreadCount := nThreadCount;
+      CalcThread[x - 1].MCTparas.PCalcThreadStats := MCTparas[0].PCalcThreadStats;
+    end;
+    for x := 0 to nThreadCount - 1 do CalcThread[x].Start;
+  end;
+end;
+
+
+procedure TfM3P.SetHeaderSize;
+//var
+//  hmax, p2h: Integer;
+//  NaviScale: Double;
+//  s: String;
+begin
+//    if NaviSizeCmb.ItemIndex >= 0 then begin
+//      s := NaviSizeCmb.Items[NaviSizeCmb.ItemIndex];
+//      NaviScale := StrToFloat(Copy(s, 1, Length(s) - 1)) / 100;
+//      if NaviScale < 0.2 then
+//        NaviScale := 0.2
+//      else if NaviScale > 2.0 then
+//        NaviScale := 2.0;
+//    end
+//    else
+//      NaviScale := 1.0;
+M3PHeader.Width:=Image_1.Width;
+M3PHeader.Height:=Image_1.Height;
+//NaviHeader.Width:=PageMain.TabWidth;
+//NaviHeader.Height:=PageMain.TabHeight-Panel_N_1.Height-Panel_N_2.Height;
+//    if Panel_N_2.Visible then p2h := Panel_N_2.Height else p2h := 0;
+//    hmax := Screen.WorkAreaHeight - 20 - GUI.Height + ClientHeight;
+//    hmax := Screen.WorkAreaHeight - 20 - GUINav.Height + ClientHeight - Panel_N_1.Height - p2h;
+//    if hmax < 200 then hmax := 200;
+
+//    with NaviHeader do
+//    begin
+//      if (OriginalSize.Y * 640) div OriginalSize.X > hmax then
+//      begin
+//        Height := (hmax + 7) and $FF8;
+//        Width := ((Height * OriginalSize.X) div OriginalSize.Y + 4) and $FF8;
+//        if Width > 640 then Width := 640 else if Width < 8 then Width := 8;
+//      end
+//      else
+//      begin
+//        Width := 640;
+//        Height := Min(hmax, (OriginalSize.Y * 640) div OriginalSize.X + 4) and $FF8;
+//        if Height < 8 then Height := 8;
+//      end;
+//      Width := Round(Width * NaviScale);
+//      Height := Round(Height * NaviScale);
+//      ClientHeight := Height + Panel_N_1.Height + p2h;
+//    end;
+end;
+
+
+procedure TfM3P.SetWindowSize; //todo: modify also maxwidth if too high
+var p2h, i, j: Integer;
+begin
+//    Panel_N_2.Visible := Panel_N_2visible;
+    SetHeaderSize;
+    Image_1.Picture.Bitmap.SetSize(M3PHeader.Width, M3PHeader.Height);
+    Image_1.SetBounds(0, 0, M3PHeader.Width, M3PHeader.Height);
+//    Image_N_6.Top := Image_N_1.Top + NaviHeader.Height div 2 - 60;  //onclick disabled when visible!
+//    Image_N_6.Left := Image_N_1.Left + NaviHeader.Width div 2 - 60;
+
+//    if Panel_N_2visible then p2h := Panel_N_2.Height else p2h := 0;
+//    if Screen.WorkAreaHeight > 810 then i := 660 else i := 580;
+//    ClientHeight := Max(i, NaviHeader.Height + Panel_N_1.Height + p2h);
+//    j := 646;
+//    if Panel_N_3.Visible then
+//      Inc(j, Panel_N_3.Width);
+//    ClientWidth := Max(j, NaviHeader.Width); //+ Panel_N_5.Width
+//    Panel_N_1.Top := ClientHeight - p2h - Panel_N_1.Height;
+//    Panel_N_2.Top := ClientHeight - p2h;
+
+//    if (Image_N_1.Picture.Bitmap.Width <> NaviHeader.Width) or
+//       (Image_N_1.Picture.Bitmap.Height <> NaviHeader.Height) then
+//    begin
+//      if iActiveThreads > 0 then WaitForCalcToStop(2000);
+//      Image_N_1.Picture.Bitmap.SetSize(NaviHeader.Width, NaviHeader.Height);
+//      if( NaviHeader.Width > 640) then
+//        Image_N_1.SetBounds(0,0, NaviHeader.Width, NaviHeader.Height)
+//      else
+//        Image_N_1.SetBounds((640 - NaviHeader.Width) div 2, (Panel_N_1.Top - NaviHeader.Height) div 2,
+//                         NaviHeader.Width, NaviHeader.Height);
+//    end
+//    else Image_N_1.Top := (Panel_N_1.Top - NaviHeader.Height) div 2;
+//    Image_N_6.Top := Image_N_1.Top + NaviHeader.Height div 2 - 60;  //onclick disabled when visible!
+//    Image_N_6.Left := Image_N_1.Left + NaviHeader.Width div 2 - 60;
+end;
+
+
+
+procedure TfM3P.SpeedButton_N_P_TO_MAIN_14Click(Sender: TObject);  //copy view to main
+begin
+    //GUI.PageCtrls.ActivePage := TabImage;
+    with GUI.MHeader do
+    begin
+      FastMove(M3PHeader.dZstart, dZstart, 80);  // dZstart up to RStop
+      FastMove(M3PHeader.hVGrads, hVGrads, 72);  // hVGrads only
+      dFOVy := M3PHeader.dFOVy;
+      if DynFogAmountChanged then
+      begin
+        Light.TBpos[6] := M3PHeader.Light.TBpos[6];
+        GUI.LAtmpLight.TBpos[6] := Light.TBpos[6];{LIGHT}
+      end;
+//      sNaviMinDist := StrToFloatK(Edit_N_6.Text);
+      bPlanarOptic := M3PHeader.bPlanarOptic;
+      bStereoMode := 0;
+      Iterations := M3PHeader.Iterations;
+      dFOVy := M3PHeader.dFOVy;
+//      ModRotPoint(GUI.MHeader);   //translate midPoint in front of camera
+      bIsJulia := M3PHeader.bIsJulia;     //new: also julia vals + formula
+      if bIsJulia <> 0 then FastMove(M3PHeader.dJx, dJx, 32);
+      bDFogIt := M3PHeader.bDFogIt;
+      RStop := M3PHeader.RStop;
+      sDEcombS := M3PHeader.sDEcombS;
+//      if DEstopChanged then sDEstop := M3PHeader.sDEstop;
+      bColorOnIt := M3PHeader.bColorOnIt;
+//      RoundFvals;
+      GUI.HAddOn := M3PHAddon;
+      GUI.MHeader.bImageScale := ImageScale;
+//      GUI.Authors := Authors;
+      GUI.SetEditsFromHeader;
+      GUI.SetLightFromHeader(GUI.MHeader);{LIGHT}
+      if Length(Caption) = 0 then GUI.Caption := 'Mandelbulb 3D' else
+      begin
+        if Caption[Length(Caption)] = '~' then GUI.Caption := Caption
+                                          else GUI.Caption := Caption + '~';
+        SetSaveDialogNames(GUI.Caption);
+      end;
+      GUI.ParasChanged;
+    end;
+    SetFocus;
+end;
+
+
+procedure TfM3P.MakeM3PHeader;
+var d: Double;
+begin
+    with M3PHeader do
+    begin
+      MandId := actMandId;
+      if TilingOptions = 0 then
+      begin
+        Width  := Panel_1.Width;  //StrToIntTrim(ed_width.Text);
+        Height := Panel_1.Height; //StrToIntTrim(ed_height.Text);
+        Width  := Image_1.Width;  //StrToIntTrim(ed_width.Text);
+        Height := Image_1.Height; //StrToIntTrim(ed_height.Text);
+      end;
+
+      iOptions := (GUI.SpinEdit_M_2.Position shl 6) or              // smooth normals            // bit7..10=smoothNs(0..8)
+                  (Ord(GUI.CheckBox_M_3.Checked) and 1) or          // first random step         // bit1=FirstStepRandom
+                  ((Ord(GUI.CheckBox_M_8.Checked) and 1) shl 1) or  // Shortdistance check DE:   // bit2=Shortdist check DEs
+                  ((Ord(GUI.CheckBox_M_2.Checked) and 1) shl 2);    // Raystep sub DEstop:       // bit3=StepSubDEstop
+
+
+//      Iterations        := StrToIntTrim(GUI.MaxIterEdit);    //      //FORMULA// 60  Label_N_V7  navi...
+      MinimumIterations := StrToIntTrim(GUI.MinIterEdit.Text);                      //FORMULA// 1
+      iMaxItsF2         := StrToIntTrim(GUI.MaxIterHybridPart2Edit.Text);           //FORMULA//
+      bNormalsOnDE      := Byte(GUI.CheckBox_M_1.Checked);   //                     Normals on DE:
+      bPlanarOptic      := RadioGroup_N_2.ItemIndex;         // GUI.RadioGroup_M_2  FOVy Camera lense: Norm,Rect,360pan
+      bStepsafterDEStop := GUI.SpinEdit_M_5.Position;        //                     Stepcount for binary search:
+
+      // The bailout value for escapetime formulas.
+      // If the 3d value exceeds this value while iterating,
+      // the current point does not belong to the object.
+      RStop             := StrToFloatK(GUI.RBailoutEdit.Text);  // GUI.RBailoutEdit.Text//FORMULA// Label_N_V4
+
+      // Defines the distance to the objects surface where raymarching stops.
+      // Lower values gives more object details, but can also lead to undersampling.
+      // The value is related to the width of a pixel.
+      sDEstop := Max(0.001, StrToFloatK(GUI.Edit_M_25.Text));//    Label_N_V6
+
+      // The distance estimates are downscaled by this factor to avoid overstepping.
+      // Reduce the value if overstepping occurs (black pixels, noisy image).
+      // Too low values slows the rendering down.
+      mZstepDiv := Max(0.001, Min(1, StrToFloatK(GUI.Edit_M_6.Text)));  //Raystep multiplier:
+
+      //Use values lower than 1 to reduce overstepping.
+      sRaystepLimiter := StrToFloatK(GUI.Edit_M_8.Text);                //Stepwidth limiter:
+
+
+//------------------------------------------------------------------------------
+//          POSITION / ROTATION
+//------------------------------------------------------------------------------
+      dXmid     := StrToFloatK(GUI.Edit_M_9.Text);  //GUI.Edit_M_9  X midpoint
+      dYmid     := StrToFloatK(GUI.Edit_M_10.Text); //GUI.Edit_M_10 Y midpoint
+
+      dZmid     := StrToFloatK(GUI.Edit_M_17.Text); //GUI.Edit_M_17 render the 2d plane at the midpoint.
+      dZstart   := StrToFloatK(GUI.Edit_M_1.Text);  //GUI.Edit_M_1  render the 2d startplane.
+      dZend     := StrToFloatK(GUI.Edit_M_3.Text);  //GUI.Edit_M_3  render the Z endplane.
+      // Size of the Zstart viewplane. Set auto in nav, change if objects are cut at the image borders.
+      dZoom     := StrToFloatK(GUI.Edit_M_5.Text);  //GUI.Edit_M_5
+
+
+      //Euler angles: (xw,yw,zw):
+      dXWrot    := StrToFloatK(GUI.XWEdit.Text) * Pid180; ////FORMULA//  Label_N_50 navi...
+      dYWrot    := StrToFloatK(GUI.YWEdit.Text) * Pid180; ////FORMULA//  Label_N_51
+      dZWrot    := StrToFloatK(GUI.ZWEdit.Text) * Pid180; ////FORMULA//  Label_N_52
+
+      dFOVy     := StrToFloatK(Edit_N_3.Text);               //GUI.Edit_M_14.Text
+
+//------------------------------------------------------------------------------
+//          STEREO / CUTTING
+//------------------------------------------------------------------------------
+      dCutZ     := StrToFloatK(GUI.Edit_M_22.Text);
+      dCutX     := StrToFloatK(GUI.Edit_M_23.Text);
+      dCutY     := StrToFloatK(GUI.Edit_M_24.Text);
+      bCutOption := Byte(GUI.CheckBox_M_4.Checked) or (Byte(GUI.CheckBox_M_5.Checked) shl 1) or (Byte(GUI.CheckBox_M_6.Checked) shl 2);   //todo side of cuts
+      // bCutOption := Byte(False) or (Byte(False) shl 1) or (False) shl 2);   //todo side of cuts
+      StereoScreenWidth := StrToFloatK(GUI.Edit_M_15.Text);
+      StereoScreenDistance := StrToFloatK(GUI.Edit_M_18.Text);
+      StereoMinDistance := StrToFloatK(GUI.Edit_M_13.Text);
+//------------------------------------------------------------------------------
+
+      bImageScale := ImageScale;
+
+//------------------------------------------------------------------------------
+//          JULIA
+//------------------------------------------------------------------------------
+      bIsJulia  := Byte(GUI.CheckBox_M_7.Checked);              //      CheckBox_N_7
+      dJx       := StrToFloatK(GUI.Edit_M_28.Text);         //    Label_N_39
+      dJy       := StrToFloatK(GUI.Edit_M_29.Text);         //  Label_N_40
+      dJz       := StrToFloatK(GUI.Edit_M_30.Text);         //   Label_N_41
+      dJw       := StrToFloatK(GUI.Edit_M_7.Text);    // ! put trackbar
+
+
+      //Multiplier for the 'Last length increase' option.
+      //Decrease the value on high powers, increase on formulas with low scales.
+      sColorMul := StrToFloatK(GUI.Edit_M_2.Text);
+
+      //The distance to the objects surface, the raymarching stops,
+      //will get bigger with the distance to the viewer.
+      //This leads to a homogen object appearence, so it is normally choosen.
+      bVaryDEstopOnFOV := Byte(GUI.CheckBox_M_9.Checked);
+
+      //The map options calculates x,y coordinates from the specific
+      //vector for spherical maps, this changes also the first color choice
+      //that is usually based on smooth iterations.
+      //You have to recalculate the image to see the result of this option change.
+      byColor2Option := GUI.RadioGroup_M_1.ItemIndex;
+
+      //Does the coloring after this number of iterations and not from bailout (-1,  disabled)
+      //Click to change between Dynfog on its and Color on its
+//      if SpeedButton_N_33.Caption = 'Dyn Fog on its:' then
+        //Label_N_38.Visible := True; UpDown1.Visible := True;
+        //Label_N_V3.Caption := IntToStr(Round(fValue[9]));
+//        bDFogIt := StrToIntTrim(Label_N_V3.Caption)
+//      else
+      //if SpeedButton_N_33.Caption := 'Color on its:' then
+        //Label_N_38.Visible := False; UpDown1.Visible := False;
+        //Label_N_V3.Caption := IntToStr(Round(fValue[9]));
+//        bColorOnIt := Max(0, Min(255, StrToIntTrim(Label_N_V3.Caption) + 1));
+
+      //bColorOnIt := Max(0, Min(255, StrToIntTrim(Edit_M_35.Text) + 1));
+      //Press to switch between dynamic fog on iterations and volumetric light on light nr
+//      if GUI.ButtonVolLight.Caption = 'Dyn. fog on It.:' then
+//      begin
+//        bVolLightNr := 2 shl 4;
+        //dynamic fog on iterations and volumetric light on light nr
+        //bDFogIt := StrToIntTrim(Edit_M_16.Text);
+//      end
+      //Tune the size of the volumetric map in 20% steps
+//      else bVolLightNr := Min(6, Max(1, StrToIntTrim(GUI.Edit_M_16.Text))) or ((GUI.UpDown_M_5.Position + 2) shl 4);
+
+
+//------------------------------------------------------------------------------
+//          AMBIENCE
+//------------------------------------------------------------------------------
+//      if PPFormCreated then
+//      begin
+//        PostProForm.PutDOFparsToHeader(@MHeader);
+//        PostProForm.PutAmbientParsToHeader(@MHeader);
+//        PostProForm.PutReflectionParsToHeader(@MHeader);
+//        HSmaxLengthMultiplier := StrToFloatK(PostProForm.Edit_P_5.Text);
+//        bCalculateHardShadow := PostProForm.HSoptions and 255;
+//        bCalc1HSsoft := PostProForm.HSoptions shr 8;
+//        byCalcNsOnZBufAuto := Byte(PostProForm.CheckBox_P_23.Checked) and 1;
+//        bSSAO24BorderMirrorSize := StrToD2Byte(PostProForm.Edit_P_9.Text);
+//     //   MCSoftShadowRadius := StrToShortFloat(PostProForm.Edit_P_7.Text);
+//        if not StrToFloatKtry(PostProForm.Edit_P_7.Text, d) then d := 1;
+//        MCSoftShadowRadius := SingleToShortFloat(MinMaxCS(s001, d, 20));
+//      end
+//      else
+//      begin
+        // PostProForm
+      bCalculateHardShadow := 0;
+      bCalc1HSsoft := 0;
+      bCalcAmbShadowAutomatic := 1;
+      sAmbShadowThreshold := 2;
+      byCalcNsOnZBufAuto := 0;
+      bSSAO24BorderMirrorSize := 0;
+//      end;
+//------------------------------------------------------------------------------
+
+      PCFAddon := @M3PHAddOn;
+
+      GUI.PutLightFInHeader(M3PHeader);                                            //LIGHT//
+
+
+//------------------------------------------------------------------------------
+//          DE.combinate / interpolate
+//------------------------------------------------------------------------------
+      M3PHAddOn.bOptions1 := (M3PHAddOn.bOptions1 and $FC) or
+                               GUI.TabControl_F_2.TabIndex;                         //FORMULA//
+      M3PHAddOn.bOptions2 := (Ord(GUI.CheckBox_F_2.Checked) and 1) or
+                              (GUI.ComboBox_F_1.ItemIndex shl 1);                   //FORMULA//
+      M3PHAddOn.bOptions3 := GUI.DECombineCmb.ItemIndex;                           //FORMULA//
+      if M3PHAddOn.bOptions3 < 5 then
+        //Absolute distance of the smooth combine functions,
+        //you can use scientific notation like 3e-5 for small values.
+        //Try 1/zoom to get close to a working value.
+        sDEcombS := Min0MaxCS(StrToFloatK(GUI.Edit_F_23.Text), 100)                 //FORMULA//
+      else
+      begin
+        DEmixColorOption := Max(0, Min(2, StrToIntTrim(GUI.Edit_F_23.Text)));       //FORMULA//
+        //Scale value of the beginning formula, affects the DE accuracy
+        sFmixPow := sNotZero(MinMaxCS(-100, StrToFloatK(GUI.Edit_F_25.Text), 100)); //FORMULA//
+      end;
+    end;
+
+end;
+
+
+
+procedure TfM3P.MakeLightValsFromHeaderLightM3P(Header: TPMandHeader10; Lvals: TPLightValsM3P; ImScale: Double);
+var dTmp: Double;
+    sTmp, sTmp2: Single;
+    i, i2: Integer;
+    HLight: TPLightingParas9;
+const SpecF: array[0..7] of Single = (1, 1.4142, 2, 2.8284, 4, 5.6568, 8, 11.313);  //= Power(2, index * 0.5)
+begin
+    with Lvals^ do
+    begin
+      HLight := @Header.Light;
+      CalcStepWidth(Header);
+      PLValignedM3P := TPLValignedM3P((Integer(@LColSbuf[0]) + 15) and $FFFFFFF0);
+      bColCycling := (HLight.TBoptions and $4000) <> 0;
+      bFarFog  := (HLight.TBoptions and $40000) <> 0;
+      bGamma2  := (HLight.TBoptions and $80000) <> 0;
+      bBlendDFog := HLight.Lights[0].FreeByte <> 0;
+      sDepth   := HLight.TBpos[4] * 0.8e-6;
+      sShadGr  := (HLight.TBpos[6] - 53) * Header.mZstepDiv * 0.00065 * ImScale;
+      if Header.bDFogIt > 0 then sTmp := 128 else sTmp := 137;
+      sShad    := (sTmp - Sqrt(HLight.TBpos[3] and $FFFF) * 11.313708) * 2.2 / Header.mZstepDiv * 0.28;
+      sAmbShad := HLight.TBpos[11] * 8e-7;
+      sDiffuse := HLight.TBpos[5] * 0.016666666666667;     // 1/60
+      sCStart  := Sqr((HLight.TBpos[9] + 30) * 0.0111111111111111111) * 32767 - 10900;
+      sCmul    := Sqr((HLight.TBpos[10] + 30) * 0.0111111111111111111) * 32767 - 10900 - sCStart;
+      if (HLight.TBoptions and $10000) > 0 then
+      begin
+        dTmp    := sCStart + sCmul * (Integer(HLight.FineColAdj2) - 30) * 0.016666666666666666;
+        sCStart := sCStart + sCmul * (Integer(HLight.FineColAdj1) - 30) * 0.0166666666666666;
+        sCmul   := dTmp - sCStart;
+      end;
+      if Abs(sCmul) > s001 then sCmul := 1 / sCmul else sCmul := 100 * Sign(sCmul);
+      dTmp     := Sqr(Sqr(HLight.TBoptions and $7F));
+      sCiStart := dTmp * 0.000158025 + 32768;
+      sCimul   := (Sqr(Sqr((HLight.TBoptions shr 7) and $7F)) - dTmp) * 0.25 * 0.00031605;  //0..3 color
+      if Abs(sCimul) > 1e-10 then sCimul := 1 / sCimul;
+      sCmul := sCmul * 4; //coloring 0..3 instead of 0..9
+      i2 := 0;  //navi lights, max 3
+      for i := 0 to 5 do if (HLight.Lights[i].Loption and 1) = 0 then  //light on
+      if (HLight.Lights[i].Loption and 2) = 0 then   //no lightmaps
+      begin
+        if (HLight.Lights[i].Loption and 4) > 0 then //posLights
+        begin
+          iXangle[i2] := 500;
+          if (i2 and 1) = 0 then iYangle[i2] := 4000 else iYangle[i2] := -1000;
+        end else begin
+          iXangle[i2] := Round(D7BtoDouble(HLight.Lights[i].LXpos) * M16384dPi);
+          iYangle[i2] := Round(D7BtoDouble(HLight.Lights[i].LYpos) * M16384dPi);
+        end;
+        sLightFuncSpec[i2] := SpecF[HLight.Lights[i].LFunction and $07];
+        iLightFuncDiff[i2] := (HLight.Lights[i].LFunction shr 4) and 3;
+        bLightOption[i2]   := 0;                // Loption:   Byte = bit1: 0: On  1: Off;  bit3 (+4) = bPosLight
+        sTmp := ShortFloatToSingle(@HLight.Lights[i].Lamp);
+        PLValignedM3P.sLCols[i2] := RGBtoSVecScale(HLight.Lights[i].Lcolor, sTmp);
+        Inc(i2);
+        if i2 = 3 then Break; //max 3 lights in navi
+      end;
+      for i := i2 to 2 do bLightOption[i] := 1;
+      PLValignedM3P.sDepthCol := RGBColToSVecNoScale(HLight.DepthCol);
+      PLValignedM3P.sDepthCol2 := RGBColToSVecNoScale(HLight.DepthCol2);
+      PLValignedM3P.sDynFogCol[0] := HLight.DynFogR;
+      PLValignedM3P.sDynFogCol[1] := HLight.DynFogG;
+      PLValignedM3P.sDynFogCol[2] := HLight.DynFogB;
+      PLValignedM3P.sDynFogCol := Add2SVecsWeight2(RGBtoSVecScale(HLight.DynFogCol2, 0.5), PLValignedM3P.sDynFogCol, 0.5);
+{!}   sTmp2 := M3PLightness;
+      sTmp := (HLight.TBpos[8] and $FFF) * 6 * sTmp2;  //sAmbient
+      PLValignedM3P.sAmbCol := ScaleSVector(ColToSVec(InterpolateRGBColor(HLight.AmbCol, HLight.AmbCol2, 0.5, 0.5), False), sTmp);
+      sColZmul := HLight.VarColZpos * -0.02 / (Header.dStepWidth * Header.Width);
+      sTmp := (HLight.TBpos[7] and $FFF) * 0.016666666666667 * sTmp2; //Spec
+      InterpolateColors(Lvals, @PLValignedM3P.ColDif, @PLValignedM3P.ColSpe, @PLValignedM3P.ColInt, HLight);
+      for i := 0 to 3 do
+      begin
+        PLValignedM3P.ColDif[i] := ScaleSVector(PLValignedM3P.ColDif[i], sTmp2 * s1d255);
+        PLValignedM3P.ColSpe[i] := ScaleSVector(PLValignedM3P.ColSpe[i], sTmp * s1d255);
+        PLValignedM3P.ColInt[i] := ScaleSVector(PLValignedM3P.ColInt[i], sTmp2 * s1d255);
+      end;
+      if HLight.BGbmp[0] <> 0 then
+      begin
+        iBackBMP := 1;
+        if (Cardinal(HLight.TBoptions) and $8000) <> 0 then iBackBMP := iBackBMP or 2;
+      end
+      else iBackBMP := 0;
+      BGLightMap := @M3DBackGroundPic;
+      pBGRotMatrix := @BGpicRotMatrix;         // @GUINav.BGpicRotMatrix
+      if iBackBMP <> 0 then
+      with M3DBackGroundPic do
+      begin
+        if LMWidth > 0 then
+        begin
+          BuildRotMatrixS(Pi - HLight.PicOffsetX * Pi * 0.0078125,
+                          HLight.PicOffsetY * Pi * 0.0078125,
+                          HLight.PicOffsetZ * Pi * 0.0078125, pBGRotMatrix);
+        //  BGLightMap.sIntensity := Power(1.04, HLight.Lights[4].AdditionalByteEx - 40);
+        end
+        else iBackBMP := 0;
+      end;
+    end;
+end;
+
+procedure TfM3P.InterpolateColors(Lvals: TPLightValsM3P; PSVAdif, PSVAspec, PSVAinside: TPSVecArray; HLight: TPLightingParas9);  //spec+diff 0..9 to 0..2
+var colA, colB: array[0..255] of TSVec;
+    i, i2, il1, il2, ip1, ip2: Integer;
+    s1: Single;
+    DVec: TVec3D;
+begin
+    with Lvals^ do
+    begin
+      il2 := 1;
+      i2 := 1; //current col pos
+      il1 := 0;
+      ip1 := 0;//HLight.LCols[0].Position;
+      ip2 := HLight.LCols[1].Position;
+      for i := 0 to 255 do
+      begin
+        if (i2 < 10) and ((i shl 7) >= HLight.LCols[i2].Position) then
+        begin
+          Inc(i2);
+          ip1 := ip2;
+          if i2 = 10 then ip2 := 32768 else ip2 := HLight.LCols[i2].Position;
+          il1 := il2;
+          il2 := il2 + 1;
+          if il2 > 9 then il2 := 0;
+        end;
+        s1 := Clamp01S((i shl 7 - ip1) / Max(1, (ip2 - ip1)));
+        colA[i] := InterpolateColorToSVec(HLight.LCols[il1].ColorDif, HLight.LCols[il2].ColorDif, s1);
+        colB[i] := InterpolateColorToSVec(HLight.LCols[il1].ColorSpe, HLight.LCols[il2].ColorSpe, s1);
+      end;
+      PSVAdif^[0] := colA[0];
+      PSVAspec^[0] := colB[0];
+      for i := 1 to 3 do  //interpolate 10 colors to 4 for navi
+      begin
+        ClearDVec(DVec);
+        ip1 := i * 64 - 16;
+        for i2 := 0 to 32 do AddSVec2Vec3d(colA[(ip1 + i2) and $FF], @DVec);
+        PSVAdif^[i] := DVecToSVec(ScaleVector(DVec, 1 / 33));
+        ClearDVec(DVec);
+        for i2 := 0 to 32 do AddSVec2Vec3d(colB[(ip1 + i2) and $FF], @DVec);
+        PSVAspec^[i] := DVecToSVec(ScaleVector(DVec, 1 / 33));
+      end;
+      il1 := 0;
+      ip1 := 0;
+      il2 := 1;
+      i2 := 1;
+      ip2 := HLight.ICols[1].Position;
+      for i := 0 to 255 do
+      begin
+        if (i2 < 4) and ((i shl 7) >= HLight.ICols[i2].Position) then
+        begin
+          Inc(i2);
+          ip1 := ip2;
+          if i2 = 4 then ip2 := 32768 else ip2 := HLight.ICols[i2].Position;
+          il1 := il2;
+          il2 := (il2 + 1) and 3;
+        end;
+        s1 := Clamp01S((i shl 7 - ip1) / Max(1, (ip2 - ip1)));
+        colB[i] := InterpolateColorToSVec(HLight.ICols[il1].Color, HLight.ICols[il2].Color, s1);
+      end;
+      PSVAinside^[0] := colB[0];
+      for i := 1 to 3 do //PSVAinside^[i] := ColToSVecNoScale(HLight.ICols[i].Color);
+      begin
+        ClearDVec(DVec);
+        ip1 := i * 64 - 16;
+        if bColCycling then
+          for i2 := 0 to 32 do AddSVec2Vec3d(colB[Min(255, ip1 + i2)], @DVec)
+        else
+          for i2 := 0 to 32 do AddSVec2Vec3d(colB[(ip1 + i2) and $FF], @DVec);
+        PSVAinside^[i] := DVecToSVec(ScaleVector(DVec, 1 / 33));
+      end;
+    end;
+end;
+
+
+procedure TfM3P.WmThreadReady(var Msg: TMessage);
+begin
+    Dec(iActiveThreads);
+    if iActiveThreads = 0 then Timer_P_1.Interval := 5;
+end;
+
+procedure TfM3P.WmThreadStat(var Msg: TMessage);
+begin
+    case Msg.WParam of
+      1:  begin Label_N_27.Caption := IntToStr(Msg.LParam); Label_N_27.Visible := True; end;
+      2:  begin Label_N_28.Caption := IntToStr(Msg.LParam); Label_N_28.Visible := True; end;
+      3:  begin Label_N_29.Caption := IntToStr(Msg.LParam); Label_N_29.Visible := True; end;
+      4:  begin Label_N_30.Caption := IntToStr(Msg.LParam); Label_N_30.Visible := True; end;
+    end;
+end;
+end.

@@ -1,0 +1,152 @@
+unit uCPU;
+
+interface
+
+uses
+  Winapi.Windows,
+  System.Math;
+
+
+type
+  TRegisters = record
+    RegEAX, RegEBX, RegECX, RegEDX: Integer;
+  end;
+
+var
+  SupportMMX :  Boolean = False;
+  SupportSSE :  Boolean = False;
+  SupportSSE2:  Boolean = False;
+  SupportSSE3:  Boolean = False;
+    SupportSSSE3: Boolean = False;
+    SupportSSE41: Boolean = False;
+  hasSIMDlevel: Integer = 0;
+  SIMDbuf: array[0..511] of Byte;
+  PAligned16: Pointer;     //for aligned constants to use in SSE2 asm
+  HiQCounterMul: Double;
+  Fi64: Int64;
+
+function NumberOfCPUs: Integer;
+function CPUID_Supported: Boolean;
+function GetCPUID(AInfoRequired: Integer): TRegisters;
+Procedure CPU_Supported;
+
+implementation
+
+uses
+  formulas;  //cyclic
+
+
+{$CODEALIGN 16}
+
+function NumberOfCPUs: Integer;
+var si: TSystemInfo;
+begin
+    GetSystemInfo(si);
+    Result := Max(1, si.dwNumberOfProcessors);
+end;
+
+function CPUID_Supported: Boolean;
+asm
+  pushfd
+  pop eax
+  mov edx, eax
+  xor eax, $200000
+  push eax
+  popfd
+  pushfd
+  pop eax
+  xor eax, edx
+  setnz al
+end;
+
+function GetCPUID(AInfoRequired: Integer): TRegisters;
+asm
+  push ebx
+  push esi
+  mov esi, edx
+  cpuid
+  mov TRegisters[esi].RegEAX, eax
+  mov TRegisters[esi].RegEBX, ebx
+  mov TRegisters[esi].RegECX, ecx
+  mov TRegisters[esi].RegEDX, edx
+  pop esi
+  pop ebx
+end;
+
+Procedure CPU_Supported;
+var LReg: TRegisters;
+begin
+  try
+    if CPUID_Supported then
+    begin
+      LReg := GetCPUID(1);
+      SupportMMX   := (LReg.RegEDX and $800000)  <> 0;
+      SupportSSE   := (LReg.RegEDX and $2000000) <> 0;
+      SupportSSE2  := (LReg.RegEDX and $4000000) <> 0;
+      SupportSSE3  := (LReg.RegECX and 1) <> 0;
+//      SupportSSSE3 := (LReg.RegECX and $200) <> 0;
+//      SupportSSE41 := (LReg.RegECX and $80000) <> 0;
+      hasSIMDlevel := (Integer(SupportSSE2) and 1) or ((Integer(SupportSSE3) and 1) shl 1);
+         {or ((Integer(SupportSSSE3) and 1) shl 2) or ((Integer(SupportSSE41) and 1) shl 3);}
+    end;
+  except
+  end;
+end;
+
+Initialization
+
+  CPU_Supported;
+
+  PAligned16 := Pointer((Cardinal(@SIMDbuf[0]) + 127) and $FFFFFFF0);
+  PDouble(Cardinal(PAligned16) - 8)^    := 0.5;          //general SmoothIt calculation
+  PInt64(PAligned16)^                   := $7FFFFFFFFFFFFFFF;  // AND mask for Abs(Double)
+  PInt64(Cardinal(PAligned16) + 8)^     := $7FFFFFFFFFFFFFFF;
+  PDouble(Cardinal(PAligned16) + 16)^   := -2.0;
+  PDouble(Cardinal(PAligned16) + 24)^   := 1e-100;
+  PDouble(Cardinal(PAligned16) + 32)^   := 1.0;          //all for cube
+  PDouble(Cardinal(PAligned16) + 40)^   := 1.0;
+  PDouble(Cardinal(PAligned16) + 48)^   := -1.0;
+  PDouble(Cardinal(PAligned16) + 56)^   := -1.0;
+  PDouble(Cardinal(PAligned16) + 64)^   := 2.0;
+  PDouble(Cardinal(PAligned16) + 72)^   := 2.0;
+  PInt64(Cardinal(PAligned16) + 80)^    := $8000000000000000;  // XOR mask for Inverting(Double)
+  PInt64(Cardinal(PAligned16) + 88)^    := $8000000000000000;
+  PDouble(Cardinal(PAligned16) + 96)^   := -1.0;         // for quats
+  PDouble(Cardinal(PAligned16) + 104)^  := 2.0;
+  PDouble(Cardinal(PAligned16) + 112)^  := 0.5;
+  PDouble(Cardinal(PAligned16) + 120)^  := 3.0;
+  PDouble(Cardinal(PAligned16) + 128)^  := 4.0;
+  PDouble(Cardinal(PAligned16) + 136)^  := 5.0;
+  PDouble(Cardinal(PAligned16) + 144)^  := 6.0;
+  PDouble(Cardinal(PAligned16) + 152)^  := 7.0;
+  PDouble(Cardinal(PAligned16) + 160)^  := 8.0;
+  PDouble(Cardinal(PAligned16) + 168)^  := 10.0;
+  PDouble(Cardinal(PAligned16) + 176)^  := 15.0;
+  PDouble(Cardinal(PAligned16) + 184)^  := 21.0;
+  PDouble(Cardinal(PAligned16) + 192)^  := 28.0;
+  PDouble(Cardinal(PAligned16) + 200)^  := 35.0;
+  PDouble(Cardinal(PAligned16) + 208)^  := 70.0;
+
+  {$IFNDEF DEBUG}
+    set8087cw($133F);  // mask floating point errors
+  {$ENDIF}
+
+  if SupportSSE2 then
+  begin
+    fIsMemberAlternating := doHybridSSE2;
+    fIsMemberAlternatingDE := doHybridDESSE2;
+    fIsMemberAlternating4D := doHybrid4DSSE2;
+    fIsMemberIpol := doInterpolHybridSSE2;
+    fIsMemberIpolDE := doInterpolHybridDESSE2;
+    fHybridCubeDE := HybridCubeSSE2DE;
+    fHybridCube := HybridCubeSSE2;
+    fHybridQuat := HybridQuatSSE2;
+    fHybridItIntPow2 := HybridItIntPow2SSE2;
+    fHIntFunctions[2] := HybridItIntPow2SSE2;
+  end;
+
+  QueryPerformanceFrequency(Fi64);
+  if Fi64 = 0 then HiQCounterMul := 1e-3 else
+  HiQCounterMul := 1000 / Fi64;
+
+end.

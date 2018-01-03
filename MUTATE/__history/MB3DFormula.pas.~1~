@@ -1,0 +1,25 @@
+unit MB3DFormula;
+uses MB3DParam;
+type
+  TMB3DFormulaFacade = class
+  private
+    FOwner: TMB3DParamsFacade;
+    FFormulaIndex: Integer;
+    FParams: TList;
+    function GetFormulaName: String;
+    procedure SetFormulaName(const FormulaName: String);
+    function GetParam(Index: Integer): TMB3DParamFacade;
+    function GetParamCount: Integer;
+    procedure SetIterationCount(const IterationCount: Integer);
+    function GetIterationCount: Integer;
+  public
+    constructor Create(const FormulaIndex: Integer;const Owner: TMB3DParamsFacade);
+    destructor Destroy;override;
+    procedure Clear;
+    function IsEmpty: Boolean;
+    property FormulaName: String read GetFormulaName write SetFormulaName;
+    property ParamCount: Integer read GetParamCount;
+    property Params[Index: Integer]: TMB3DParamFacade read GetParam;
+    property IterationCount: Integer read GetIterationCount write SetIterationCount;
+  end;
+end.

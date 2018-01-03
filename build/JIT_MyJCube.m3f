@@ -1,0 +1,43 @@
+[OPTIONS]
+.DEscale = 1
+.SIpower = 2
+.Version = 9
+.Double x = 1
+.Double y = 1
+.Double z = 1
+[SOURCE]
+
+procedure MyJCube(var x, y, z, Double);
+var
+  r: Double;
+  x, y, z, t: Double;
+  scl,a: Double;
+  dd: Double;
+  i: integer
+begin
+
+scl=1/(sqrt(2)-1)
+a=1-2*(sqrt(2)-1);
+
+   r=x*x+y*y+z*z;dd=1;
+    for(i=0;i<MI && r<100;i++) begin
+      x=abs(x);y=abs(y);z=abs(z);
+      if(x<y) then begin t=x;x=y;y=t; end
+      if(z<x) then begin t=z;z=x;x=t; end
+      if(x<y) then begin t=x;x=y;y=t; end
+      if(y<a && x>1-2*a+y-a) then begin 
+         x-=1;z-=1;
+         x*=scl*scl;y*=scl*scl;z*=scl*scl;dd*=scl*scl;
+         x+=1;z+=1; end
+      else begin
+         x-=1;y-=1;z-=1;
+         x*=scl;y*=scl;z*=scl;dd*=scl;
+         x+=1;y+=1;z+=1; end
+      r=x*x+y*y+z*z;
+   end
+   (sqrt(r)-1.75)/dd
+end
+
+[END]
+
+ 

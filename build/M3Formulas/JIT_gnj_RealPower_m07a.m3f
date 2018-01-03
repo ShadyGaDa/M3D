@@ -1,0 +1,97 @@
+[OPTIONS]
+.DEScale = 1
+.SIPow = 2
+.Version = 9
+.Double CommonBulbX = 1.0
+.Double CommonBulbY = 1.0
+.Double CommonBulbZ = 1.0
+.Double FixTanPhi = 1.1
+.Double FixTanTheta = 1.1
+.Double MutationX = 0.0
+.Double MutationY = 0.0
+.Double MutationZ = 0.0
+.Double Power_ = 8
+[SOURCE]
+procedure MyFormula(var x, y, z, w: Double; PIteration3D: TPIteration3D);
+
+var
+   sq_r: double;
+   r, theta, phi: double;
+   r_pow, theta_pow, phi_pow: double;
+   cx, cy, cz: double;
+   sph, sth, cph, cth: double;
+   x_tmp, y_tmp, z_tmp, tan_th, tan_ph: double;
+
+begin
+   cx := PIteration3D^.J1;
+   cy := PIteration3D^.J2;
+   cz := PIteration3D^.J3;
+  
+   sq_r := x*x+y*y+z*z;
+   r := sqrt(sq_r);
+
+   phi := ArcSin(z/r) ;
+   theta := ArcTan2(y,x) ;
+
+   r_pow:= power(r, Power_);
+   phi_pow := phi*Power_;
+   theta_pow := theta*Power_;
+
+   SinCos(theta_pow, sth, cth);
+   SinCos(phi_pow, sph, cph);
+
+   tan_th := sth/(cth + FixTanTheta);
+   tan_ph := sph/(cph + FixTanPhi);
+
+   x_tmp := -z*tan_th + y*tan_ph;   
+   y_tmp := x*tan_th + z*tan_ph;
+   z_tmp := y*tan_th - x*tan_ph;
+   
+   x := MutationX*x_tmp + CommonBulbX*cph*cth*r_pow + cx;
+   y := MutationY*y_tmp + CommonBulbY*cph*sth*r_pow + cy;
+   z := MutationZ*z_tmp - CommonBulbZ*sph*r_pow + cz;
+      
+end;
+[END]
+Old formula name:  JIT_gnj_CommonBulb.m3f
+
+Classic Mandelbulb formula in triplex algebra for learning / testing purposes
+Slight optimization by using SinCos() procedure instead of individual sin/cos
+
+Mutation: 
+
+General formula:  t(n+1) = t(n)^Power_ + c
+where 
+* t:=(x,y,z) in cartesian coordinates
+  respective t:=(r, phi, theta) in a variant of spherical coordinates  
+* c:=(cx,cy,cz) in cartesian coordinates
+
+
+// calculate the radius  
+   sq_r := x*x+y*y+z*z;
+   r := sqrt(sq_r);
+
+// calculate the sperical angles
+   phi := ArcSin(z/r) ;
+   theta := -ArcTan2(x,y) ;
+
+// calculate the power for the spherical coordinates, and do the rotation
+   r_pow:= power(r, Power_);
+   phi_pow := phi*Power_;
+   theta_pow := theta*Power_;
+
+// Calculate sin and cos
+   SinCos(theta_pow, sth, cth);
+   SinCos(phi_pow, sph, cph);
+
+// MutationY
+   tan_th := sth/(cth + FixTan);
+   tan_ph := sph/(cph + FixTan);
+   
+   y_tmp := x*tan_th + z*tan_ph;
+   
+// Bring it together (normal bulb calculation)
+   x := cph*cth*r_pow + cx;
+   y := MutationY*y_tmp + CommonBulbY*cph*sth*r_pow + cy;
+   z := -sph*r_pow + cz;
+   

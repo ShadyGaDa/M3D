@@ -1,0 +1,441 @@
+ { StartPreset: TLpreset16 =
+   (Cols: (5873889, 8837614, $8B491D, 2988346, 12248958, $FFC49F, 11287584, 14579248, 7481121);
+   Lights: ((Loption: 0; LFunction: 50; Lcolor: $A0E8FF;
+   LXangle: 3368; LYangle: 5279), (Loption: 1; LFunction: 16; Lcolor: 2307911;  //60
+   LXangle: -2822; LYangle: -7737),(),()); DepthCol: $8B491D; TB578pos: (34, 102, 90); DepthCol2: $FFC49F; Version: 1);
+}
+
+
+{  StartPreset: TLpreset16 =
+   (Cols: ($58B0F8, $101010, $8B491D, $28A050, $206030, $FFC49F, $A07020, $B0B0B0, $DE7630);
+   Lights: ((Loption: 0; LFunction: 5; Lcolor: $A0E8FF; LXangle: 0; LYangle: 5000),
+            (Loption: 1; LFunction: 53; Lcolor: $233747; LXangle: -2822; LYangle: -7737),
+            (),()); DepthCol: $A05018; TB578pos: (50, 100, 90); DepthCol2: $E0D0B0; Version: 1); //}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+procedure TGUI.lmdMouseDown(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+var t, i: Integer;
+    E: TEdit;
+    d: Double;
+    bUpdate: LongBool;
+    s: String;
+begin                        //inputBox popup
+    E := Sender as TEdit;
+    t := E.Tag;
+    d := AdjustSliderValues[t];
+
+
+
+
+
+    if t in [6..8] then s := FloatToStr(d / Pid180) else
+    if t = 13 then s := IntToStr(Round(d)) else s := FloatToStr(d);
+    if not InputQuery('Input', 'New value:', s) then Exit;
+    if t in [6..8] then d := StrToFloatK(s) * Pid180 else d := StrToFloatK(s);
+    AdjustSliderValues[t] := d;
+    if t < 3 then
+    begin
+      TPVec3D(@NaviHeader.dJx)^[t] := AdjustSliderValues[t];
+      UpdateJuliaLabels;
+      bUpdate := NaviHeader.bIsJulia > 0;
+    end
+//    else if t < 6 then
+
+
+
+
+
+    if t < 6 then
+    begin  //put new value to navi haddon
+      s := E.Text;
+      UpdateFormulaLabels(FormulaIndex(t - 3));
+      NaviHAddon.Formulas[FormulaIndex(t - 3).X]
+            .dOptionValue[FormulaIndex(t - 3).Y] := AdjustSliderValues[t];
+      bUpdate := s <> E.Text;
+    end
+
+
+
+
+    else if t < 9 then
+    begin
+      TPVec3D(@NaviHeader.dXWrot)^[t - 6] := AdjustSliderValues[t];
+      Update4dRotLabels;
+      bUpdate := True;
+    end
+    else
+    begin
+      s := L.Caption;
+      if t = 9 then
+      begin
+        AdjustSliderValues[9] := Min0MaxCD(255, AdjustSliderValues[9]);
+        i := Round(AdjustSliderValues[9]);
+        if SpeedButton_N_33.Caption = 'Dyn Fog on its:' then
+          NaviHeader.bDFogIt := i
+        else
+        begin
+          NaviHeader.bColorOnIt := i;
+          Dec(i);
+        end;
+        L.Caption := IntToStr(i);
+      end
+      else if t = 10 then
+      begin
+        AdjustSliderValues[10] := MaxCD(0, AdjustSliderValues[10]);
+        NaviHeader.RStop := AdjustSliderValues[10];
+        L.Caption := FloatToStrSingle(NaviHeader.RStop);
+      end
+      else if t = 11 then
+      begin
+        AdjustSliderValues[11] := Min0MaxCD(AdjustSliderValues[11], 100);
+        NaviHeader.sDEcombS := AdjustSliderValues[11];
+        L.Caption := FloatToStrSingle(NaviHeader.sDEcombS);
+      end
+      else if t = 12 then
+      begin
+        AdjustSliderValues[12] := MinMaxCD(0.1, AdjustSliderValues[12], 300);
+        NaviHeader.sDEstop := AdjustSliderValues[12];
+        L.Caption := FloatToStrSingle(NaviHeader.sDEstop);
+        DEstopChanged := True;
+      end
+      else if t = 13 then
+      begin
+        AdjustSliderValues[13] := MinMaxCD(1, AdjustSliderValues[13], 5000);
+        NaviHeader.Iterations := Round(AdjustSliderValues[13]);
+        L.Caption := IntToStr(NaviHeader.Iterations);
+      end;
+      bUpdate := s <> L.Caption;
+    end;
+
+
+    AdjustSliderPos0Values[t] := AdjustSliderValues[t];
+
+
+//    if bUpdate then NewCalc;
+//    CheckFocus;
+end;
+
+
+
+// You can use a multiplier.
+// from 0 - 5 with 0.01 increments.
+// Just set the Minimum to 0, the Maximum to 500, and increment by 1.
+// set your float value, multiply it by 100, and use that for the TrackBar value.
+
+
+class FloatTrackBar: TrackBar
+
+    private float precision = 0.01f;
+    public float Precision
+        get  return precision;
+        set
+             precision = value;
+            // todo: update the 5 properties below
+    public new float LargeChange
+     get  return base.LargeChange * precision;  set base.LargeChange = (int) (value / precision);
+    public new float Maximum
+     get  return base.Maximum * precision; set  base.Maximum = (int) (value / precision);
+    public new float Minimum
+     get  return base.Minimum * precision; set  base.Minimum = (int) (value / precision);
+    public new float SmallChange
+     get  return base.SmallChange * precision; set  base.SmallChange = (int) (value / precision);
+    public new float Value
+     get  return base.Value * precision;  set  base.Value = (int) (value / precision);
+}
+
+
+procedure TGUI.EventSciEditMouseMove(Sender:TObject;Shift:TShiftState;X,Y:Integer);
+var e: TEdit; et: Integer; t: Integer; d: Double;
+begin  //borderstyle/parentcolor/Alignment
+
+//  e := Sender as TEdit;
+//  et := e.Tag;
+//  if et<15 then
+//    e.BorderStyle:=bsSingle;
+end;
+
+procedure TGUI.EventSciEditMouseLeave(Sender: TObject);
+var e: TEdit; et: Integer; t: Integer; //d: Double;
+begin
+//  e := Sender as TEdit;
+//  et := e.Tag;
+//  if et<15 then
+//    e.BorderStyle:=bsNone;
+end;
+procedure TGUI.EventSciEditMouseEnter(Sender: TObject);
+var e: TEdit; et: Integer; t: Integer; d: Double;
+begin  //borderstyle/parentcolor/Alignment
+//  e := Sender as TEdit;
+//  et := e.Tag;
+//  if et<15 then
+//    e.BorderStyle:=bsSingle;
+end;
+procedure TGUI.EventSciEditMouseUp(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+begin
+  //
+end;
+procedure TGUI.EventSciEditMouseDown(Sender:TObject;Button:TMouseButton;Shift:TShiftState;X,Y:Integer);
+begin
+  //
+end;
+
+
+//procedure TGUI.JvTClick(Sender: TObject);
+//begin
+//  //
+//end;
+//procedure TGUI.JvTChangeValue(Sender: TObject);
+//begin
+//  //
+//end;
+//procedure TGUI.JvTMouseUp(Sender: TObject;
+//  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+//begin
+//  //
+//end;
+//procedure TGUI.JvTMouseDown(Sender: TObject;
+//  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+//begin
+//  //
+//end;
+//
+//
+//procedure TGUI.JvTBChanged(Sender: TObject);
+//begin
+//  //Button1.Parent := PageCtrls;
+//end;
+//
+//procedure TGUI.JvTBMouseLeave(Sender: TObject);
+//begin
+//  //Button1.Parent := PageCtrls;
+//end;
+//procedure TGUI.JvTBMouseEnter(Sender: TObject);
+//begin
+//  //Button1.Parent := PageCtrls;
+//end;
+//
+//
+//
+//procedure TGUI.JvTBMouseUp(Sender: TObject;
+//  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+//begin
+////
+//end;
+//
+//
+////procedure TGUI.JvxSMouseDown(Sender: TObject;
+//procedure TGUI.JvTBMouseDown(Sender: TObject;
+//  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+//begin
+////    JvTB.Visible:=False;
+//end;
+//
+
+
+
+procedure TGUI.EventSciEditDblClick(Sender: TObject);
+begin
+   //
+end;
+
+
+//  for i := 0 to 15 do //disappear
+//     begin
+//      e := (FindComponent('Edit_F_' + IntToStr(i + 1)) as TEdit);
+//      e.BorderStyle:=bsNone;
+//      e.ParentColor:=True;
+//      e.Alignment:=taCenter;
+//    end;
+
+//procedure TGUI.JvTBDblClick(Sender: TObject);
+
+function Byte2Str(var B: Byte): String;
+begin
+Result := Chr(B);
+end;
+
+
+function Byte2Str(var B: Byte): String;
+var x,l,
+begin
+  l:=1; Result:=''; N:=0;
+  for x:=0 to 7 do
+    begin
+      if (B and l)=l then Result:='1'+Result else Result:='0'+Result;
+      l:=l*2;
+    end;
+end;
+
+
+
+function Word2Str(var W: Word): String;
+var x,l: Integer;
+begin
+  l:=1; Result:='';
+  for x:=0 to 15 do
+    begin
+      if (W and l)=l then Result:='1'+Result else Result:='0'+Result;
+      l:=l*2;
+    end;
+end;
+
+
+
+
+
+
+//begin
+
+//  JvTB.Position := d:
+
+//  for i := 0 to 15 do
+//  begin
+//    E := (FindComponent('Edit_F_' + IntToStr(i + 1)) as TEdit);
+//    E.Visible := iOptionCount > i;
+//    L := (FindComponent('Label_F_' + IntToStr(i + 1)) as TLabel);
+//    L.Visible := iOptionCount > i;
+//    if iOptionCount > i then
+//    begin
+//      E.Text := FloatToStr(dOptionValue[i]);
+//      L.Caption := PTCustomFormula(GUI.MHeader.PHCustomF[t]).sOptionStrings[i];
+//    end;
+//  end;
+//  Panel_F_3.Visible := TabControl_F_2.TabIndex = 2;
+
+//  Check4DandInfo;
+//
+
+
+//procedure TGUI.RoundFvals;
+//var X, Y: Integer;
+//begin
+//    if (HAddon.bOptions1 and 3) = 1 then
+//    begin
+//      for X := 0 to 1 do
+//      for Y := 0 to HAddon.Formulas[X].iOptionCount - 1 do
+//        if isIntType(HAddon.Formulas[X].byOptionType[Y]) then
+//          HAddon.Formulas[X].dOptionValue[Y] := Round(HAddon.Formulas[X].dOptionValue[Y]);
+//    end
+//    else
+//    for X := 0 to 5 do if HAddon.Formulas[X].iItCount > 0 then
+//      for Y := 0 to HAddon.Formulas[X].iOptionCount - 1 do
+//        if isIntType(HAddon.Formulas[X].byOptionType[Y]) then
+//          HAddon.Formulas[X].dOptionValue[Y] := Round(HAddon.Formulas[X].dOptionValue[Y]);
+//end;
+
+
+//d := GUI.HAddon.Formulas[t].dOptionValue[JvxS.Tag];
+//with GUI.HAddon.Formulas[t].dOptionValue[JvxS.Tag] do
+
+//Epsilon MaxValue MinValue PositiveInfinity NegativeInfinity
+//NaN Exponent Fraction Mantissa Sign Exp Frac SpecialType BuildUp ToString
+//IsNan IsInfinity IsNegativeInfinity IsPositiveInfinity
+//Bytes Words Parse TryParse Size
+
+//    AdjustSliderValues: array[0..13] of Double;
+//AdjustSliderPos0Values: array[0..13] of Double;
+//     AdjustSliderRange: array[0..13] of Double;
+//   AdjustSliderValType: array[0..13] of Integer;
+//
+//     fVType: array[0..13] of Integer;
+//     fRange: array[0..13] of Double;
+//     fVZero: array[0..13] of Double;
+//     fValue: array[0..13] of Double;
+//  AdjustSliderValues[i] := GetFormulaValue(FormulaIndex(i - 3)); //from naviHaddon
+//  AdjustSliderPos0Values[i] := AdjustSliderValues[i];
+//  AdjustSliderValType[i] := GetFormulaValType(FormulaIndex(i - 3));
+//  if isAngleType(AdjustSliderValType[i]) then AdjustSliderRange[i] := 15 else
+//    AdjustSliderRange[i] := 1;
+//GUI.HAddon.Formulas[t].iOptionCount //# of vals
+
+
+//  TCustomFormula = record
+//    SIMDlevel:       Integer;    // 0: no simd, 1: SSE2, 2: SSE3, 4: SSSE3, 8: SSE4.1
+//    sOptionStrings:  array[0..15] of String;
+//    byOptionTypes:   array[0..15] of Byte;
+//    iCFOptionCount:  Integer;
+//    dDEscale:        Double;
+//    dADEscale:       Double;
+//    dSIpow:          Double;
+//    dRstop:          Double;
+//    iConstCount:     Integer;
+//    iDEoption:       Integer;
+//    iVersion:        Integer;
+//    pConstPointer16: Pointer;
+//    VarBuffer:       array of Byte;
+//    bCPmemReserved:  LongBool;
+//    pCodePointer:    TPhybridIteration;
+//    LastModTime:     TDatetime;
+//  end;
+//  PTCustomFormula = ^TCustomFormula;
+
+  //  if bAltHybrid then
+//  begin
+//    if iItCount < 0 then iItCount := 0;
+//    EditItCount.Text := IntToStr(iItCount);
+//  end
+//  else EditItCount.Text := FloatToStrSingle(PSingle(@iItCount)^);
+//  Formulaname := Trim(CustomFtoStr(CustomFname));
+//  SetFormulaCBs(Formulaname);
+//  EditJITFormulaItm.Enabled := Pos('JIT', Formulaname) = 1;
+
+//CopyFormulaValueFromMain(FormulaIndex(FocusedSlider))
+//procedure TGUINav.CopyFormulaValueFromMain(Findex: TPoint);
+//begin
+//    NaviHAddon.Formulas[Findex.X].dOptionValue[Findex.Y] :=
+//      GUI.HAddon.Formulas[Findex.X].dOptionValue[Findex.Y];
+//end;
+//function TGUINav.GetFormulaValue(Findex: TPoint): Double;
+//begin
+//    Result := NaviHAddon.Formulas[Findex.X].dOptionValue[Findex.Y];
+//end;
+
+//for i := 3 to 5 do  //update all slider
+//begin
+
+//end;
+
+
+  //  if TabControl_F_2.TabIndex = 2 then
+//    CheckBox_F_1.Checked := t in [GUI.HAddon.bHybOpt1 shr 4, GUI.HAddon.bHybOpt2 shr 8]
+//  else CheckBox_F_1.Checked := t = (GUI.HAddon.bHybOpt1 shr 4);
+
+
+
+
+
+
+
+
+//s: String; ps: PWideChar;
+//  s:=IntToStr(t);
+//  ps:=PChar(s);
+
+//  with Application do
+//  begin
+//    NormalizeTopMosts;
+//    MessageBox(ps, 'Look', MB_OK);    // [smbOK]
+//    RestoreTopMosts;
+//  end;
+
+//  case p.Height of
+//    285:  with p do begin Height:=18; BevelOuter:=bvRaised; BorderStyle:=bsNone end;
+//  else
+//          with p do begin Height:=285; BevelOuter:=bvNone; BorderStyle:=bsSingle end;
+//  end

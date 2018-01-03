@@ -1,0 +1,257 @@
+object fM3P: TfM3P
+  Left = 0
+  Top = 0
+  Caption = 'Parameter Browser'
+  ClientHeight = 534
+  ClientWidth = 738
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object Image_1: TImage
+    AlignWithMargins = True
+    Left = 276
+    Top = 229
+    Width = 225
+    Height = 173
+    Margins.Left = 5
+    Margins.Top = 5
+    Margins.Right = 5
+    Margins.Bottom = 10
+    AutoSize = True
+    Transparent = True
+  end
+  object JvgBitmapImage1: TJvgBitmapImage
+    Left = 266
+    Top = 4
+    Width = 235
+    Height = 197
+  end
+  object Label1: TLabel
+    Left = 269
+    Top = 208
+    Width = 85
+    Height = 13
+    Caption = 'Label1'
+  end
+  object ctrlPanel: TPanel
+    Left = 654
+    Top = 0
+    Width = 84
+    Height = 534
+    Align = alRight
+    TabOrder = 0
+    object sb_start: TSpeedButton
+      Left = 24
+      Top = 27
+      Width = 39
+      Height = 29
+      Hint = 'Open parameter'
+      Caption = 'start'
+      ParentShowHint = False
+      ShowHint = True
+      OnClick = sb_startClick
+    end
+    object lbl_Active: TLabel
+      Left = 28
+      Top = 8
+      Width = 32
+      Height = 13
+      Caption = '--------'
+    end
+    object Label_N_8: TLabel
+      Left = 6
+      Top = 86
+      Width = 30
+      Height = 13
+      Alignment = taRightJustify
+      Caption = 'FOVy:'
+    end
+    object Label_N_27: TLabel
+      Left = 12
+      Top = 270
+      Width = 64
+      Height = 13
+      Caption = '----------------'
+      Visible = False
+    end
+    object Label_N_28: TLabel
+      Left = 12
+      Top = 270
+      Width = 64
+      Height = 13
+      Caption = '----------------'
+      Visible = False
+    end
+    object Label_N_29: TLabel
+      Left = 12
+      Top = 270
+      Width = 64
+      Height = 13
+      Caption = '----------------'
+      Visible = False
+    end
+    object Label_N_30: TLabel
+      Left = 12
+      Top = 270
+      Width = 64
+      Height = 13
+      Caption = '----------------'
+      Visible = False
+    end
+    object SpeedButton_N_P_TO_MAIN_14: TSpeedButton
+      Left = 6
+      Top = 146
+      Width = 74
+      Height = 23
+      Hint = 
+        'Send this view with all julia and formula modifications to the m' +
+        'ain program.'
+      Caption = 'View to main'
+      ParentShowHint = False
+      ShowHint = True
+    end
+    object HiQ: TCheckBox
+      Left = 21
+      Top = 62
+      Width = 54
+      Height = 15
+      Hint = 
+        'Reduces the raystep multiplier to avoid overstepping.'#13#10'Makes the' +
+        ' rendering slower.'
+      Caption = 'HiQual'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 0
+    end
+    object Edit_N_3: TEdit
+      Tag = 1
+      Left = 41
+      Top = 83
+      Width = 32
+      Height = 21
+      ParentShowHint = False
+      ShowHint = False
+      TabOrder = 1
+      Text = '30'
+    end
+    object RadioGroup_N_2: TRadioGroup
+      Left = 12
+      Top = 105
+      Width = 63
+      Height = 32
+      Hint = 'standard  rectilinear  panorama'
+      Caption = 'Camera:'
+      Columns = 3
+      ItemIndex = 0
+      Items.Strings = (
+        'stan.'
+        'rect.'
+        'pano.')
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 2
+      WordWrap = True
+    end
+    object ScrollBox1: TScrollBox
+      Left = 12
+      Top = 184
+      Width = 66
+      Height = 67
+      TabOrder = 3
+    end
+  end
+  object MainPnl: TPanel
+    Left = 616
+    Top = 379
+    Width = 122
+    Height = 140
+    BevelOuter = bvNone
+    TabOrder = 1
+    object Panel_1: TPanel
+      Left = 12
+      Top = 19
+      Width = 100
+      Height = 100
+      Caption = '1'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = []
+      ParentFont = False
+      TabOrder = 0
+      VerticalAlignment = taAlignBottom
+    end
+  end
+  object JvFilenameEdit1: TJvFilenameEdit
+    Left = 118
+    Top = 4
+    Width = 142
+    Height = 21
+    TabOrder = 2
+    Text = 'JvFilenameEdit1'
+  end
+  object JvDirectoryListBox1: TJvDirectoryListBox
+    Left = 1
+    Top = 27
+    Width = 115
+    Height = 507
+    Directory = 
+      'C:\Users\CrystalSkull\Documents\Embarcadero\Studio\Projects\M3D\' +
+      'xe10'
+    ItemHeight = 17
+    TabOrder = 3
+    OnChange = JvDirectoryListBox1Change
+  end
+  object JvDriveCombo1: TJvDriveCombo
+    Left = 1
+    Top = 4
+    Width = 115
+    Height = 22
+    DriveTypes = [dtFixed, dtRemote, dtCDROM]
+    Offset = 4
+    TabOrder = 4
+    OnChange = JvDriveCombo1Change
+  end
+  object JvFileListBox1: TJvFileListBox
+    Left = 118
+    Top = 27
+    Width = 142
+    Height = 507
+    ItemHeight = 13
+    TabOrder = 5
+    OnChange = JvFileListBox1Change
+    ForceFileExtensions = False
+  end
+  object OpenDialog_P_1: TOpenDialog
+    DefaultExt = 'm3p'
+    Filter = 'M3D parameter (*.m3p)|*.m3p'
+    Left = 585
+    Top = 70
+  end
+  object Timer_P_1: TTimer
+    Enabled = False
+    Interval = 100
+    Left = 586
+    Top = 9
+  end
+  object OpenTextFileDialog1: TOpenTextFileDialog
+    Left = 585
+    Top = 188
+  end
+  object SaveTextFileDialog1: TSaveTextFileDialog
+    Left = 584
+    Top = 133
+  end
+  object JvFindFilesDialog1: TJvFindFilesDialog
+    UseSpecialFolder = False
+    Left = 584
+    Top = 237
+  end
+end

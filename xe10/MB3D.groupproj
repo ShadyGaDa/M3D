@@ -1,0 +1,72 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{2D0CD7AC-6E46-4AE4-9D75-81B6E5FCBBDD}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="M3D.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\CUSTOM\ListBoxEx.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\CUSTOM\SpeedButtonEx.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="..\CUSTOM\TrackBarEx.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="M3D">
+        <MSBuild Projects="M3D.dproj"/>
+    </Target>
+    <Target Name="M3D:Clean">
+        <MSBuild Projects="M3D.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="M3D:Make">
+        <MSBuild Projects="M3D.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ListBoxEx">
+        <MSBuild Projects="..\CUSTOM\ListBoxEx.dproj"/>
+    </Target>
+    <Target Name="ListBoxEx:Clean">
+        <MSBuild Projects="..\CUSTOM\ListBoxEx.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ListBoxEx:Make">
+        <MSBuild Projects="..\CUSTOM\ListBoxEx.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="SpeedButtonEx">
+        <MSBuild Projects="..\CUSTOM\SpeedButtonEx.dproj"/>
+    </Target>
+    <Target Name="SpeedButtonEx:Clean">
+        <MSBuild Projects="..\CUSTOM\SpeedButtonEx.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="SpeedButtonEx:Make">
+        <MSBuild Projects="..\CUSTOM\SpeedButtonEx.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="TrackBarEx">
+        <MSBuild Projects="..\CUSTOM\TrackBarEx.dproj"/>
+    </Target>
+    <Target Name="TrackBarEx:Clean">
+        <MSBuild Projects="..\CUSTOM\TrackBarEx.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="TrackBarEx:Make">
+        <MSBuild Projects="..\CUSTOM\TrackBarEx.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="M3D;ListBoxEx;SpeedButtonEx;TrackBarEx"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="M3D:Clean;ListBoxEx:Clean;SpeedButtonEx:Clean;TrackBarEx:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="M3D:Make;ListBoxEx:Make;SpeedButtonEx:Make;TrackBarEx:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>
